@@ -12,23 +12,21 @@ st.set_page_config(page_title="ConjectureQ", layout="wide")
 database.init_db()
 
 # --- OAuth Configuration (Hardcoded Credentials) ---
-# WARNING: This is not a secure practice for production apps.
-# Replace the placeholder text with your actual credentials from Google Cloud.
+# SECURITY WARNING: You must revoke the secret below and generate a new one.
+# Do not share source code with secrets publicly.
 CLIENT_ID = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
-CLIENT_SECRET = "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"
+CLIENT_SECRET = "PASTE_YOUR_NEW_SECRET_HERE_AFTER_RESETTING_IT" # Replace this with your new secret
 REDIRECT_URI = "http://localhost:8501" # This must match your Google Cloud setup
 
-# Make sure you have filled in your credentials above.
-if CLIENT_ID == "PASTE_YOUR_CLIENT_ID_HERE" or CLIENT_SECRET == "PASTE_YOUR_CLIENT_SECRET_HERE":
-    st.error("OAuth credentials are not configured. Please edit test.py to add your Client ID and Client Secret.")
-    st.stop()
-
-# Create an OAuth2Component instance
-oauth2 = OAuth2Component(CLIENT_ID, CLIENT_SECRET,
-    authorize_url="https://accounts.google.com/o/oauth2/v2/auth",
-    token_url="https://oauth2.googleapis.com/token",
-    refresh_token_url="https://oauth2.googleapis.com/token",
-    revoke_token_url="https://oauth2.googleapis.com/revoke",
+# --- CORRECTED OAUTH2COMPONENT INSTANCE ---
+# Create an OAuth2Component instance with the updated, correct argument names
+oauth2 = OAuth2Component(
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
+    redirect_uri=REDIRECT_URI,
+    authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
+    token_endpoint="https://oauth2.googleapis.com/token",
+    revoke_endpoint="https://oauth2.googleapis.com/revoke",
 )
 
 # --- Session State Management ---
