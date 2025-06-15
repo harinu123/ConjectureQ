@@ -17,13 +17,12 @@ CLIENT_SECRET = "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"
 REDIRECT_URI = "http://localhost:8501"  # This must match your Google Cloud setup
 
 # --- CORRECTED OAUTH2COMPONENT INSTANCE ---
-# Create an OAuth2Component instance. 'redirect_uri' is removed from this section.
+# Create an OAuth2Component instance. We omit revoke_endpoint here.
 oauth2 = OAuth2Component(
     client_id=CLIENT_ID,
     client_secret=CLIENT_SECRET,
     authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
     token_endpoint="https://oauth2.googleapis.com/token",
-    revoke_endpoint="https://oauth2.googleapis.com/revoke",
 )
 
 # --- Session State Management ---
@@ -31,12 +30,11 @@ if 'user_info' not in st.session_state:
     st.session_state.user_info = None
 
 # --- Login Button and User Info Fetching ---
-# The button is displayed in the main body of the app if the user is not logged in.
 if not st.session_state.user_info:
     result = oauth2.authorize_button(
         name="Login with Google",
         icon="https://www.google.com.tw/favicon.ico",
-        redirect_uri=REDIRECT_URI,  # redirect_uri is correctly placed here
+        redirect_uri=REDIRECT_URI,
         scope="openid email profile",
         key="google",
         use_container_width=True,
@@ -45,7 +43,7 @@ if not st.session_state.user_info:
     if result:
         st.session_state.user_info = result.get('userinfo')
         st.rerun()
-else:  # If user is logged in, show their info and a logout button in the sidebar.
+else:
     user = st.session_state.user_info
     st.sidebar.title(f"Welcome, {user.get('name', 'User')}!")
     st.sidebar.image(user.get('picture'), width=100)
@@ -64,7 +62,6 @@ if st.session_state.user_info:
 
 tabs = st.tabs(tab_list)
 
-# ... (The rest of the file is unchanged) ...
 with tabs[0]:
     st.header("Problem Statement")
     st.markdown("**Conjecture (true form):** Describe the conjecture here.")
