@@ -19,7 +19,7 @@ st.title("ConjectureQ: Interactive Coding Challenges for Open Conjectures")
 # --- Authentication with hardcoded secrets ---
 CLIENT_ID = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
 CLIENT_SECRET = "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"
-REDIRECT_URI = "http://localhost:8501"
+REDIRECT_URI = "https://conjectureq.streamlit.app/"
 # This key is used to sign the session cookie. You can change it to any secret string.
 TOKEN_KEY = "my_super_secret_token_key_12345"
 
