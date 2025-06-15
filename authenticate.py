@@ -4,19 +4,21 @@ import time
 import streamlit as st
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
-from token_manager import AuthTokenManager # Use the new token_manager
+from token_manager import AuthTokenManager
 
 class Authenticator:
     def __init__(
         self,
-        secret_path: str,
-        redirect_uri: str,
+        client_id: str,
+        client_secret: str,
         token_key: str,
+        redirect_uri: str,
         cookie_name: str = "auth_jwt",
         token_duration_days: int = 7,
     ):
         st.session_state["connected"] = st.session_state.get("connected", False)
-        self.secret_path = secret_path
+        self.client_id = client_id
+        self.client_secret = client_secret
         self.redirect_uri = redirect_uri
         self.auth_token_manager = AuthTokenManager(
             cookie_name=cookie_name,
@@ -25,8 +27,20 @@ class Authenticator:
         )
 
     def _initialize_flow(self):
-        flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-            self.secret_path,
+        # Create a client_config dictionary instead of reading from a file
+        client_config = {
+            "web": {
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": [self.redirect_uri],
+            }
+        }
+        
+        # Use Flow.from_client_config instead of from_client_secrets_file
+        flow = google_auth_oauthlib.flow.Flow.from_client_config(
+            client_config=client_config,
             scopes=[
                 "openid",
                 "https://www.googleapis.com/auth/userinfo.profile",
@@ -50,19 +64,17 @@ class Authenticator:
 
     def check_authentication(self):
         if st.session_state["connected"]:
-            return # Already connected
+            return
 
-        # Check for an existing token in cookies first
         token = self.auth_token_manager.get_decoded_token()
         if token is not None:
             st.session_state["connected"] = True
             st.session_state["user_info"] = token
             st.rerun()
 
-        # If no cookie, check for auth code in URL from Google redirect
         auth_code = st.query_params.get("code")
         if auth_code:
-            st.query_params.clear() # Clean the URL
+            st.query_params.clear()
             try:
                 flow = self._initialize_flow()
                 flow.fetch_token(code=auth_code)
@@ -71,7 +83,6 @@ class Authenticator:
                 oauth_service = build(serviceName="oauth2", version="v2", credentials=creds)
                 user_info = oauth_service.userinfo().get().execute()
 
-                # Set token and update session state
                 self.auth_token_manager.set_token(
                     email=user_info.get("email"),
                     name=user_info.get("name"),
@@ -82,7 +93,6 @@ class Authenticator:
                 st.rerun()
             except Exception as e:
                 st.toast(f":red[Error during authentication: {e}]")
-
 
     def logout(self):
         st.session_state["connected"] = False
