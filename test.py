@@ -44,23 +44,7 @@ REDIRECT_URI = "http://localhost:8501" # This must match your Google Cloud setup
 
 # Create an OAuth2Component instance. 'redirect_uri' is removed from this section.
 
-oauth2 = OAuth2Component(
-
-    client_id=CLIENT_ID,
-
-    client_secret=CLIENT_SECRET,
-
-    # The library version you are using does not expect redirect_uri here.
-
-    # It is correctly passed to the authorize_button below.
-
-    authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
-
-    token_endpoint="https://oauth2.googleapis.com/token",
-
-    revoke_endpoint="https://oauth2.googleapis.com/revoke",
-
-)
+oauth2 = OAuth2Component(client_id=CLIENT_ID,client_secret=CLIENT_SECRET,authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",token_endpoint="https://oauth2.googleapis.com/token",revoke_endpoint="https://oauth2.googleapis.com/revoke")
 
 
 
