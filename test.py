@@ -5,7 +5,7 @@ from streamlit_ace import st_ace
 import pandas as pd
 import backend
 import database
-from streamlit_oauth import OAuth2Component # Import the OAuth library
+from streamlit_google_oauth import google_oauth # Import the new library
 
 # --- Page and Database Setup ---
 st.set_page_config(page_title="ConjectureQ", layout="wide")
@@ -16,54 +16,35 @@ CLIENT_ID = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleuserconten
 CLIENT_SECRET = "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"
 REDIRECT_URI = "http://localhost:8501" # This must match your Google Cloud setup
 
-
-# --- CORRECTED OAUTH2COMPONENT INSTANCE ---
-# The component is initialized with only the client ID and secret.
-oauth2 = OAuth2Component(
-    client_id=CLIENT_ID,
-    client_secret=CLIENT_SECRET
-)
-
-
 # --- Session State Management ---
 if 'user_info' not in st.session_state:
     st.session_state.user_info = None
 
-# --- Login Button and User Info Fetching ---
-# The button is displayed in the main body of the app if the user is not logged in.
-if not st.session_state.user_info:
-    # The endpoint URLs are passed directly to the authorize_button method.
-    result = oauth2.authorize_button(
-        name="Login with Google",
-        icon="https://www.google.com.tw/favicon.ico",
-        redirect_uri=REDIRECT_URI,
-        scope="openid email profile",
-        key="google",
-        use_container_width=True,
-        pkce='S256',
-        authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
-        token_endpoint="https://oauth2.googleapis.com/token"
-    )
-    if result:
-        st.session_state.user_info = result.get('userinfo')
-        st.rerun()
-else: # If user is logged in, show their info and a logout button in the sidebar.
-    user = st.session_state.user_info
-    st.sidebar.title(f"Welcome, {user.get('name', 'User')}!")
-    st.sidebar.image(user.get('picture'), width=100)
-    st.sidebar.write(f"**Email:** {user.get('email')}")
-    if st.sidebar.button("Logout"):
-        # The revoke endpoint is used when logging out.
-        oauth2.revoke_token(
-            token=st.session_state.user_info.get('access_token'),
-            client_id=CLIENT_ID,
-            client_secret=CLIENT_SECRET,
-            revoke_endpoint="https://oauth2.googleapis.com/revoke"
-        )
-        st.session_state.user_info = None
-        st.rerun()
+# --- Login Flow using the new library ---
+# The google_oauth function returns the user's email if logged in, otherwise None
+user_email, user_info = google_oauth(
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
+    redirect_uri=REDIRECT_URI,
+    login_button_text="Login with Google",
+    logout_button_text="Logout",
+)
+
+# If the user is logged in, store their info in the session state
+if user_email and user_info:
+    st.session_state.user_info = user_info
+    # Add email to the user_info dict for consistency, as some older library versions did this
+    st.session_state.user_info['email'] = user_email
+elif not user_email and not user_info: # This condition triggers on logout
+    st.session_state.user_info = None
+
 
 # --- Main Application UI ---
+if st.session_state.user_info:
+    st.sidebar.title(f"Welcome, {st.session_state.user_info.get('name', 'User')}!")
+    st.sidebar.image(st.session_state.user_info.get('picture'), width=100)
+    st.sidebar.write(f"**Email:** {st.session_state.user_info.get('email')}")
+
 st.title("ConjectureQ: Interactive Coding Challenges for Open Conjectures")
 
 # Conditionally add "My Submissions" tab if logged in
@@ -73,7 +54,7 @@ if st.session_state.user_info:
 
 tabs = st.tabs(tab_list)
 
-# ... (The rest of the file is unchanged) ...
+# ... (Problem Statement and Background tabs are the same)
 with tabs[0]:
     st.header("Problem Statement")
     st.markdown("**Conjecture (true form):** Describe the conjecture here.")
@@ -141,7 +122,7 @@ with tabs[4 + tab_offset]:
         st.warning("Please log in to join the discussion.")
 
     st.subheader("Community Discussion")
-    comments = database.get__comments()
+    comments = database.get_comments()
     for comment in reversed(comments):
         st.markdown(f"**{comment['name']}** ({comment['timestamp']}):")
         st.markdown(f"> {comment['text']}")
