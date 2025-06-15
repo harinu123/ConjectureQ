@@ -1,3 +1,2 @@
 streamlit-ace
 bcrypt
-streamlit-google-auth
