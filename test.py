@@ -18,13 +18,10 @@ REDIRECT_URI = "http://localhost:8501" # This must match your Google Cloud setup
 
 
 # --- CORRECTED OAUTH2COMPONENT INSTANCE ---
-# Create an OAuth2Component instance. 'redirect_uri' is removed from this section.
+# The component is initialized with only the client ID and secret.
 oauth2 = OAuth2Component(
     client_id=CLIENT_ID,
-    client_secret=CLIENT_SECRET,
-    authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
-    token_endpoint="https://oauth2.googleapis.com/token",
-    revoke_endpoint="https://oauth2.googleapis.com/revoke",
+    client_secret=CLIENT_SECRET
 )
 
 
@@ -35,14 +32,17 @@ if 'user_info' not in st.session_state:
 # --- Login Button and User Info Fetching ---
 # The button is displayed in the main body of the app if the user is not logged in.
 if not st.session_state.user_info:
+    # The endpoint URLs are passed directly to the authorize_button method.
     result = oauth2.authorize_button(
         name="Login with Google",
         icon="https://www.google.com.tw/favicon.ico",
-        redirect_uri=REDIRECT_URI, # redirect_uri is correctly placed here
+        redirect_uri=REDIRECT_URI,
         scope="openid email profile",
         key="google",
         use_container_width=True,
         pkce='S256',
+        authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
+        token_endpoint="https://oauth2.googleapis.com/token"
     )
     if result:
         st.session_state.user_info = result.get('userinfo')
@@ -53,6 +53,13 @@ else: # If user is logged in, show their info and a logout button in the sidebar
     st.sidebar.image(user.get('picture'), width=100)
     st.sidebar.write(f"**Email:** {user.get('email')}")
     if st.sidebar.button("Logout"):
+        # The revoke endpoint is used when logging out.
+        oauth2.revoke_token(
+            token=st.session_state.user_info.get('access_token'),
+            client_id=CLIENT_ID,
+            client_secret=CLIENT_SECRET,
+            revoke_endpoint="https://oauth2.googleapis.com/revoke"
+        )
         st.session_state.user_info = None
         st.rerun()
 
@@ -134,7 +141,7 @@ with tabs[4 + tab_offset]:
         st.warning("Please log in to join the discussion.")
 
     st.subheader("Community Discussion")
-    comments = database.get_comments()
+    comments = database.get__comments()
     for comment in reversed(comments):
         st.markdown(f"**{comment['name']}** ({comment['timestamp']}):")
         st.markdown(f"> {comment['text']}")
