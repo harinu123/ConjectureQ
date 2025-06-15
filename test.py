@@ -1,8 +1,8 @@
 import streamlit as st
 from streamlit_ace import st_ace
 import pandas as pd
-import backend
-import database
+import backend  # Import the backend module
+import database # Import the database module
 
 # Initialize the database
 database.init_db()
@@ -46,11 +46,15 @@ with tabs[2]:
     st.header("Solver Portal")
     st.markdown("Submit your solution code below and run it to see real-time results:")
 
-    # Add a text input for the user's name
     solver_name = st.text_input("Enter your name to appear on the leaderboard:", key="solver_name")
 
     code = st_ace(
-        placeholder="Write your Python solution here...",
+        placeholder="""# Your function must be named 'solve'
+# Example:
+# def solve(numbers: list[int]) -> bool:
+#     # ... your logic here ...
+#     return True
+""",
         language="python",
         theme="monokai",
         keybinding="vscode",
@@ -64,53 +68,52 @@ with tabs[2]:
     )
 
     if st.button("Run Solution"):
-        if solver_name:
+        if solver_name and code:
+            # CORRECTED: Call the function from the 'backend' module
             results = backend.run_solution_and_get_results(solver_name, code)
             st.subheader("Results")
             st.write(results)
         else:
-            st.warning("Please enter your name before submitting.")
+            st.warning("Please enter your name and provide a solution.")
 
 # --- 4. Tester ---
 with tabs[3]:
     st.header("Tester Portal")
     st.markdown("Submit test cases or edge cases to challenge the solvers' submissions:")
 
-    # Add a text input for the tester's name
     tester_name = st.text_input("Enter your name to appear on the leaderboard:", key="tester_name")
-
     test_input = st.text_area("Test Input (enter a list of positive integers, e.g., [2, 3, 5])")
 
     if st.button("Submit Test Case"):
-        if tester_name:
+        if tester_name and test_input:
+            # CORRECTED: Call the function from the 'backend' module
             feedback = backend.run_tester_and_get_feedback(tester_name, test_input)
             st.subheader("Feedback")
             st.write(feedback)
         else:
-            st.warning("Please enter your name before submitting.")
-
+            st.warning("Please enter your name and a test case.")
 
 # --- 5. Discussion ---
 with tabs[4]:
     st.header("Discussion")
 
-    # Add a text input for the commenter's name
     commenter_name = st.text_input("Your Name:", key="commenter_name")
     discussion_text = st.text_area("Add your comment or question:")
 
     if st.button("Post"):
         if commenter_name and discussion_text:
+            # CORRECTED: Call the function from the 'database' module
             database.add_comment(commenter_name, discussion_text)
             st.success("Your comment has been posted.")
         else:
             st.warning("Please enter your name and a comment.")
 
     st.subheader("Community Discussion")
+    # CORRECTED: Call the function from the 'database' module
     comments = database.get_comments()
-    for comment in comments:
+    for comment in reversed(comments):  # Show newest first
         st.markdown(f"**{comment['name']}** ({comment['timestamp']}):")
         st.markdown(f"> {comment['text']}")
-
 
 # --- 6. Leaderboards ---
 with tabs[5]:
@@ -119,10 +122,12 @@ with tabs[5]:
 
     with col1:
         st.subheader("🏆 Solver Leaderboard")
+        # CORRECTED: Call the function from the 'backend' module
         solver_df = backend.get_solver_leaderboard()
-        st.dataframe(solver_df)
+        st.dataframe(solver_df, use_container_width=True)
 
     with col2:
         st.subheader("🎯 Tester Leaderboard")
+        # CORRECTED: Call the function from the 'backend' module
         tester_df = backend.get_tester_leaderboard()
-        st.dataframe(tester_df)
+        st.dataframe(tester_df, use_container_width=True)
