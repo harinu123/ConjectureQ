@@ -14,8 +14,8 @@ database.init_db()
 # --- OAuth Configuration (Hardcoded Credentials) ---
 # WARNING: This is not a secure practice for production apps.
 # Replace the placeholder text with your actual credentials from Google Cloud.
-CLIENT_ID = 877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com 
-CLIENT_SECRET = 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
+CLIENT_ID = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
+CLIENT_SECRET = "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"
 REDIRECT_URI = "http://localhost:8501" # This must match your Google Cloud setup
 
 # Make sure you have filled in your credentials above.
