@@ -5,7 +5,7 @@ from streamlit_ace import st_ace
 import pandas as pd
 import backend
 import database
-from streamlit_oauth import OAuth2Component  # Import the OAuth library
+from streamlit_oauth import OAuth2Component # Import the OAuth library
 
 # --- Page and Database Setup ---
 st.set_page_config(page_title="ConjectureQ", layout="wide")
@@ -14,27 +14,31 @@ database.init_db()
 # --- OAuth Configuration (Hardcoded Credentials) ---
 CLIENT_ID = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
 CLIENT_SECRET = "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"
-REDIRECT_URI = "http://localhost:8501"  # This must match your Google Cloud setup
+REDIRECT_URI = "http://localhost:8501" # This must match your Google Cloud setup
+
 
 # --- CORRECTED OAUTH2COMPONENT INSTANCE ---
-# Create an OAuth2Component instance. We omit revoke_endpoint here.
+# Create an OAuth2Component instance. 'redirect_uri' is removed from this section.
 oauth2 = OAuth2Component(
     client_id=CLIENT_ID,
     client_secret=CLIENT_SECRET,
     authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
     token_endpoint="https://oauth2.googleapis.com/token",
+    revoke_endpoint="https://oauth2.googleapis.com/revoke",
 )
+
 
 # --- Session State Management ---
 if 'user_info' not in st.session_state:
     st.session_state.user_info = None
 
 # --- Login Button and User Info Fetching ---
+# The button is displayed in the main body of the app if the user is not logged in.
 if not st.session_state.user_info:
     result = oauth2.authorize_button(
         name="Login with Google",
         icon="https://www.google.com.tw/favicon.ico",
-        redirect_uri=REDIRECT_URI,
+        redirect_uri=REDIRECT_URI, # redirect_uri is correctly placed here
         scope="openid email profile",
         key="google",
         use_container_width=True,
@@ -43,7 +47,7 @@ if not st.session_state.user_info:
     if result:
         st.session_state.user_info = result.get('userinfo')
         st.rerun()
-else:
+else: # If user is logged in, show their info and a logout button in the sidebar.
     user = st.session_state.user_info
     st.sidebar.title(f"Welcome, {user.get('name', 'User')}!")
     st.sidebar.image(user.get('picture'), width=100)
@@ -62,6 +66,7 @@ if st.session_state.user_info:
 
 tabs = st.tabs(tab_list)
 
+# ... (The rest of the file is unchanged) ...
 with tabs[0]:
     st.header("Problem Statement")
     st.markdown("**Conjecture (true form):** Describe the conjecture here.")
@@ -76,12 +81,7 @@ with tabs[2]:
     st.header("Solver Portal")
     if st.session_state.user_info:
         st.markdown(f"Submit your solution below, **{st.session_state.user_info.get('name')}**.")
-        code = st_ace(
-            placeholder="# Your function must be named 'solve'",
-            language="python",
-            theme="monokai",
-            key="solver_editor"
-        )
+        code = st_ace(placeholder="# Your function must be named 'solve'", language="python", theme="monokai", key="solver_editor")
         if st.button("Run Solution"):
             user_email = st.session_state.user_info.get('email')
             results = backend.run_solution_and_get_results(user_email, code)
@@ -101,7 +101,7 @@ if st.session_state.user_info:
             st.info("You haven't submitted any solutions yet.")
         else:
             for i, sub in enumerate(my_submissions):
-                with st.expander(f"Submission #{i+1}", expanded=(i==0)):
+                with st.expander(f"Submission #{i+1}", expanded=i==0):
                     st.code(sub['code'], language='python')
                     st.write(f"Tests Passed: {sub.get('tests_passed', 0)}")
 
