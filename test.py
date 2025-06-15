@@ -14,7 +14,7 @@ database.init_db()
 
 # --- App Title and Page Config ---
 st.set_page_config(page_title="ConjectureQ", layout="wide")
-st.title("ConjectureQ: Interactive Coding Challenges for Open Conjectures")
+st.title("ConjectureQ: Interactive Coding Challenges for unsolved problems")
 
 # --- Authentication with hardcoded secrets ---
 CLIENT_ID = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
