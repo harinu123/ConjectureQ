@@ -53,8 +53,7 @@ oauth2 = OAuth2Component(client_id=CLIENT_ID,client_secret=CLIENT_SECRET,authori
 # --- Session State Management ---
 
 if 'user_info' not in st.session_state:
-
-    st.session_state.user_info = None
+  st.session_state.user_info = None
 
 
 
