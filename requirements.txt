@@ -1,4 +1,4 @@
-streamlit-ace
+streamlit-aceAdd commentMore actions
 bcrypt
-google_auth_oauthlib
-google-api-python-client
+streamlit-google-oauth
+streamlit-google-auth
