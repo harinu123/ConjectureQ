@@ -7,7 +7,7 @@ import pandas as pd
 # --- Local Imports ---
 import backend
 import database
-from authenticate import Authenticator
+# from authenticate import Authenticator
 
 # --- Initialize ---
 database.init_db()
@@ -16,22 +16,22 @@ database.init_db()
 st.set_page_config(page_title="ConjectureQ", layout="wide")
 st.title("ConjectureQ: Interactive Coding Challenges for unsolved problems")
 
-# --- Authentication with hardcoded secrets ---
-CLIENT_ID = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
-CLIENT_SECRET = "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"
-REDIRECT_URI = "https://conjectureq.streamlit.app/"
-# This key is used to sign the session cookie. You can change it to any secret string.
-TOKEN_KEY = "my_super_secret_token_key_12345"
+# # --- Authentication with hardcoded secrets ---
+# CLIENT_ID = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
+# CLIENT_SECRET = "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"
+# REDIRECT_URI = "https://conjectureq.streamlit.app/"
+# # This key is used to sign the session cookie. You can change it to any secret string.
+# TOKEN_KEY = "my_super_secret_token_key_12345"
 
-authenticator = Authenticator(
-    client_id=CLIENT_ID,
-    client_secret=CLIENT_SECRET,
-    redirect_uri=REDIRECT_URI,
-    token_key=TOKEN_KEY,
-)
+# authenticator = Authenticator(
+#     client_id=CLIENT_ID,
+#     client_secret=CLIENT_SECRET,
+#     redirect_uri=REDIRECT_URI,
+#     token_key=TOKEN_KEY,
+# )
 
-# This function checks for cookies and URL auth codes.
-authenticator.check_authentication()
+# # This function checks for cookies and URL auth codes.
+# authenticator.check_authentication()
 
 # --- Main App Logic ---
 # If user is not connected, show login button and stop.
@@ -39,7 +39,7 @@ if not st.session_state.get("connected"):
     # st.image("https://www.googleapis.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png", width=200)
     st.header("Welcome!")
     st.write("Please log in with your Google account to participate.")
-    authenticator.login_widget()
+    # authenticator.login_widget()
     st.stop()
 
 # --- If user IS connected, show the full application ---
@@ -48,8 +48,8 @@ if not st.session_state.get("connected"):
 st.sidebar.title(f"Welcome, {st.session_state['user_info'].get('name', 'User')}!")
 st.sidebar.image(st.session_state['user_info'].get('picture'), width=100, use_column_width='auto')
 st.sidebar.write(f"**Email:** {st.session_state['user_info'].get('email')}")
-if st.sidebar.button("Logout"):
-    authenticator.logout()
+# if st.sidebar.button("Logout"):
+#     authenticator.logout()
 
 # --- Application Tabs ---
 tab_list = ["Problem Statement", "Background", "Solver", "My Submissions", "Tester", "Discussion", "Leaderboards"]
