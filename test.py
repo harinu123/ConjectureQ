@@ -35,12 +35,12 @@ st.title("ConjectureQ: Interactive Coding Challenges for unsolved problems")
 
 # --- Main App Logic ---
 # If user is not connected, show login button and stop.
-if not st.session_state.get("connected"):
+# if not st.session_state.get("connected"):
     # st.image("https://www.googleapis.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png", width=200)
-    st.header("Welcome!")
-    st.write("Please log in with your Google account to participate.")
+    # st.header("Welcome!")
+    # st.write("Please log in with your Google account to participate.")
     # authenticator.login_widget()
-    st.stop()
+    # st.stop()
 
 # --- If user IS connected, show the full application ---
 
