@@ -58,8 +58,8 @@ tabs = st.tabs(tab_list)
 with tabs[0]:
     st.header("Problem Statement")
     st.markdown("""
-        # **Conjecture (True Form):** For any given set of positive integers, there exists a sequence of operations (addition, subtraction, multiplication) that will result in a prime number.
-        # **Coding Challenge:** Write a Python function `solve(numbers: list[int]) -> bool` that takes a list of positive integers and returns `True` if a prime number can be formed, and `False` otherwise.
+         **Conjecture (True Form):** 
+         **Coding Challenge:** 
     """)
 
 with tabs[1]:
