@@ -36,7 +36,7 @@ authenticator.check_authentication()
 # --- Main App Logic ---
 # If user is not connected, show login button and stop.
 if not st.session_state.get("connected"):
-    # st.image("https://www.googleapis.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png", width=200)
+    st.image("https://www.googleapis.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png", width=200)
     st.header("Welcome!")
     st.write("Please log in with your Google account to participate.")
     authenticator.login_widget()
@@ -58,8 +58,8 @@ tabs = st.tabs(tab_list)
 with tabs[0]:
     st.header("Problem Statement")
     st.markdown("""
-        **Conjecture (True Form):** For any given set of positive integers, there exists a sequence of operations (addition, subtraction, multiplication) that will result in a prime number.
-        **Coding Challenge:** Write a Python function `solve(numbers: list[int]) -> bool` that takes a list of positive integers and returns `True` if a prime number can be formed, and `False` otherwise.
+        # **Conjecture (True Form):** For any given set of positive integers, there exists a sequence of operations (addition, subtraction, multiplication) that will result in a prime number.
+        # **Coding Challenge:** Write a Python function `solve(numbers: list[int]) -> bool` that takes a list of positive integers and returns `True` if a prime number can be formed, and `False` otherwise.
     """)
 
 with tabs[1]:
