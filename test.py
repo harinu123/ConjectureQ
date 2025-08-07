@@ -605,7 +605,7 @@ Let $P_{\text{real}}$ be the MNIST pixel distribution and $P_{\text{synth}}$ be 
 - **Histogram spec:** 50 bins over **[-1, 1]** (inclusive).
 - **Smoothing:** add $\varepsilon=10^{-8}$ to every bin to avoid zeros.
 """
-)
+
 
 st.latex(r"""
 D_{\text{sym}}(P_{\text{real}}, P_{\text{synth}})
@@ -639,7 +639,7 @@ The leaderboard shows each tester’s **best** $D_{\text{sym}}$ to date.
 - To increase $D_{\text{sym}}$, place probability mass in pixel-value regions rare in MNIST—while remembering symmetric KL penalizes empty bins on either side (smoothing mitigates this).
 """
 )
-
+    )
 
     
 
