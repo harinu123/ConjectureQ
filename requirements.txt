@@ -16,8 +16,8 @@ streamlit
 # streamlit-ace
 
 # new
-torch==2.2.2
-torchvision==0.17.2          # brings torchvision.datasets.MNIST
-numpy==1.26.4
-scipy==1.12.0                # KL implementation
-scikit-learn==1.5.0          # train/test split utils
+torch
+torchvision         # brings torchvision.datasets.MNIST
+numpy
+scipy              # KL implementation
+scikit-learn         # train/test split utils
