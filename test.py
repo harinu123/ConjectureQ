@@ -520,7 +520,7 @@ tab_list = [
     "Overview",
     "Challenger",
     "Solver",
-    "Challenger Submission Portal
+    "Challenger Submission Portal",
     "My Submissions",
     "Tester Submission Portal",
     "Discussion",
