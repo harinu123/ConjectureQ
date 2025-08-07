@@ -421,7 +421,6 @@
 #             use_container_width=True
 #         )
 
-
 import streamlit as st, textwrap
 from streamlit_ace import st_ace
 import pandas as pd
@@ -445,17 +444,17 @@ st.markdown(
     #MainMenu,header,footer{visibility:hidden;}
 
     .landing-wrapper{display:flex;flex-direction:column;align-items:center;gap:1.2rem;margin-top:4rem;}
-    .cq-logo{width:180px;object-fit:contain;}
+    .cq-logo{width:200px;object-fit:contain;}
     .cq-name{
         font-family:'Chewy',cursive;
-        font-size:7rem;                      /* 🔼 MUCH LARGER */
+        font-size:9rem;                      /* 🔥 EVEN BIGGER */
         margin:0;
         color:#ff228c;
-        text-shadow:0 4px 8px #ff92cb;
+        text-shadow:0 6px 12px #ff9dd2;
+        line-height:0.9;
     }
-    .tagline{font-size:1.15rem;color:#333;margin-top:-.6rem;}
+    .tagline{font-size:1.15rem;color:#333;margin-top:-.8rem;}
 
-    /* cards */
     .card-row{display:flex;gap:2rem;margin-top:2.8rem;}
     .card{width:230px;padding:1.7rem 1rem;background:#fff;
           border:2px dotted #ff7ac4;border-radius:20px;text-align:center;
@@ -464,7 +463,6 @@ st.markdown(
     .card h3{font-family:'Chewy',cursive;font-size:1.75rem;margin:0;color:#333;}
     .card p{margin:.4rem 0 0;font-size:.9rem;font-style:italic;color:#777;}
 
-    /* fallback button */
     .stButton>button{
         background:linear-gradient(135deg,#7f00ff 0%,#e100ff 100%);
         color:#fff;border:none;padding:.8rem 1.7rem;border-radius:.7rem;
@@ -505,7 +503,7 @@ if not st.session_state.show_app:
         (st.rerun if hasattr(st,"rerun") else st.experimental_rerun())
     st.stop()
 
-# ── main app (unchanged logic) ──────────────────────────────────────────────
+# ── main app (unchanged) ────────────────────────────────────────────────────
 st.title("Conjecture Bytes:")
 
 CLIENT_ID="877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
@@ -551,8 +549,7 @@ def solve(n:int)->list[int]:
 with tabs[3]:
     st.header("My Past Submissions")
     subs=database.get_user_submissions(st.session_state["user_info"]["email"])
-    if not subs:
-        st.info("None yet.")
+    if not subs: st.info("None yet.")
     else:
         for i,s in enumerate(reversed(subs)):
             with st.expander(f"Submission #{len(subs)-i}", expanded=i==0):
@@ -583,4 +580,5 @@ with tabs[6]:
     with col2:
         st.subheader("🎯 Tester")
         st.dataframe(backend.get_tester_leaderboard(), use_container_width=True)
+
 
