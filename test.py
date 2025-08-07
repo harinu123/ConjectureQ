@@ -476,7 +476,7 @@ database.init_db()
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 # --- App Title (after landing) ---
-st.title("Conjecture Bytes:")
+st.title("Conjecture Q: CHALLENGE 1")
 
 # --- Authentication with hard-coded secrets ---
 CLIENT_ID     = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
