@@ -143,78 +143,50 @@ with tabs[1]:
     # Tie-breakers: final loss at step $K$, then wall-clock time.
     #         """
     r"""
-    ## Design a Sampling Policy
+    ## Adaptive Sampling Policy 
     
     ### Objective
-    Design a sampling policy  
+    Design a **sampling policy** that selects, at each training step $t$, a batch of indices from the current pool so as to **minimize the average training loss** over $K$ SGD updates.
+    
+    **Score (lower is better):**
     $$
-    \pi(i)
-    $$  
-    over the current training pool indices so that, when batches are drawn according to  
+    \mathrm{AULC} \;=\; \frac{1}{K}\,\sum_{t=1}^{K} L_t
     $$
-    \pi
-    $$  
-    and trained with SGD on the fixed model, the **average training loss** over \(K\) steps is minimised.
+    Tie-breakers: final loss at step \(K\), then wall-clock time.
     
     ---
     
-    ### Score (lower is better)
-    We compute the **Average Under the Loss Curve**:
-    
-    $$
-    \text{AULC} = \frac{1}{K} \sum_{t=1}^{K} L_t
-    $$
-    
-    - \(L_t\) = mean loss at step \(t\) on the chosen batch.
-    - **Tie-breakers:** final loss at step \(K\), then wall-clock time.
-    
-    ---
-    
-    ### Fixed Training Setup *(hosted by ConjectureQ)*
-    - **Dataset:** MNIST train (\(60{,}000\) images).  
-      - Images flattened to 784.  
-      - Normalised via:
-        $$
-        \frac{x}{255} - 0.5 \; \bigg/ \; 0.5 \in [-1, 1]
-        $$
+    ### Training Environment (fixed)
+    - **Data:** MNIST train (28×28, grayscale) plus any tester-submitted images appended to the pool.  
+      Pixels are in $[0,1]$ (via `ToTensor()`); tester uploads are divided by $255$ then cast to float.
     - **Model:** 2-layer MLP
       $$
-      784 \;\to\; 128 \;\to\; \text{ReLU} \;\to\; 10 \;(\text{logits})
+      784 \;\xrightarrow{W_1}\; 256 \;\xrightarrow{\mathrm{ReLU}}\; 10 \;\xrightarrow{W_2}\; \text{(logits)}
       $$
-    - **Optimiser:** SGD (no momentum), learning rate \(0.1\)  
-    - **Loss:** Cross-Entropy  
-    - **Batch size:** 256  
-    - **Horizon:** \(K = 100\) steps *(configurable in the portal)*  
-    - **Seed:** 1337 (applies to model init, dataloading, and any platform-side RNG)
+    - **Loss:** cross-entropy on logits.
+    - **Optimizer:** SGD (no momentum), learning rate fixed by us.
+    - **Batch size:** $b$ (fixed by the host).  
+    - **Horizon:** $K$ steps (set in the portal).  
+    - **Seed:** fixed and applied to all host-side RNGs.
+    
+    The **platform** runs the model/updates; the **solver** controls **which indices** are sampled each step.
     
     ---
     
-    ### Control and Restrictions
-    - The **platform** controls: model, optimiser, weight updates.  
-    - The **solver** controls: the order in which dataset indices are fed to the model.
-    - The solver **must** output a permutation of all indices \(0, \dots, n_{\text{samples}} - 1\).
+    ### Telemetry (returned to you after each step)
+    For the **batch you chose** at step \(t\):
+    - `indices_t` — the indices you sampled (size \(b\)).
+    - `per_sample_losses_t \in \mathbb{R}^b` — cross-entropy per item (no reduction).
     
-    ---
-    
-    ### Telemetry (semi-white-box)
-    After each step, the platform returns **only for the batch you chose**:
-    - `indices`: sampled indices (already known to the solver).
-    - `per_sample_losses`:  
-      \(\texttt{float[batch]}\) from CE loss with `reduction='none'`.
-    
-    **Optional toggles** *(default ON)*:
-    - `probs`: \(\texttt{float[batch, 10]}\) — softmax probabilities of logits.
-    - `grad_norm_x`: \(\texttt{float[batch]}\) — per-sample input-gradient norms
+    **Optional (may be enabled in the portal):**
+    - `probs_t \in \mathbb{R}^{b\times 10}` — softmax of logits.
+    - `grad_norm_x_t \in \mathbb{R}^b` — input-gradient norms
       $$
-      \lVert \nabla_x \ell \rVert_2
+      \left\| \nabla_x \,\ell(f(x),y) \right\|_2
       $$
-      a cheap, useful proxy for importance sampling.
+      a cheap proxy for importance sampling (higher norm ⇒ potentially higher variance contribution).
     
-    ---
-    
-    **Not exposed:**  
-    - Full model weights  
-    - Global per-sample gradients
+    **Not exposed:** full weights, or per-sample gradients outside your batch.
     
     ---
     """
