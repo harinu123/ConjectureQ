@@ -421,206 +421,208 @@
 #             use_container_width=True
 #         )
 
-import streamlit as st, textwrap
+import streamlit as st
 from streamlit_ace import st_ace
+import pandas as pd
 
-# ── local imports (unchanged) ───────────────────────────────────────────────
-import backend, database
+# --- Local Imports ---
+import backend
+import database
 from authenticate import Authenticator
 
-# ── boot & page meta ────────────────────────────────────────────────────────
+# --- Initialize ---
 database.init_db()
-st.set_page_config("ConjectureQ", "🧩", layout="wide")
 
-# ── GLOBAL CSS  ─────────────────────────────────────────────────────────────
-st.markdown(
-    """
-    <style>
-    /* fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Chewy&display=swap');
+# --- Page Config (and landing-state) ---
+st.set_page_config(page_title="ConjectureQ", layout="wide")
 
-    html,body,[class*="stApp"]{
-        font-family:'Outfit',sans-serif;
-        background:#fafcff;
-    }
-    #MainMenu,header,footer{visibility:hidden;}
-
-    /* ── hero section ──────────────────────────────────────────*/
-    .landing-wrapper{
-        display:flex;flex-direction:column;align-items:center;
-        gap:1.4rem;margin-top:4rem;padding:0 1rem;
-    }
-    .cq-logo{
-        width:190px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.1));
-    }
-    .cq-name{
-        font-family:'Chewy',cursive;
-        font-size:8rem;line-height:.9;margin:0;
-        background:linear-gradient(90deg,#4b6bfb 0%,#38bdf8 100%);
-        -webkit-background-clip:text;
-        -webkit-text-fill-color:transparent;
-        text-shadow:0 6px 16px rgba(56,189,248,.25);
-    }
-    .tagline{
-        font-size:1.25rem;color:#374151;font-weight:500;
-        max-width:920px;text-align:center;margin-top:-.7rem;
-    }
-
-    /* cards */
-    .card-row{display:flex;flex-wrap:wrap;gap:2rem;margin-top:3rem;}
-    .card{
-        width:250px;padding:1.9rem 1.1rem;background:#ffffff;
-        border:3px solid transparent;border-radius:24px;text-align:center;
-        transition:.18s all ease;cursor:pointer;
-        box-shadow:0 8px 20px rgba(0,0,0,.08);
-        background-clip:padding-box;
-    }
-    .card:hover{
-        transform:translateY(-6px);
-        border-image:linear-gradient(90deg,#4b6bfb,#38bdf8) 1;
-        box-shadow:0 10px 26px rgba(0,0,0,.12);
-    }
-    .card h3{
-        font-family:'Chewy',cursive;font-size:2rem;margin:0;color:#0f172a;
-    }
-    .card p{
-        margin:.5rem 0 0;font-size:.9rem;font-style:italic;color:#475569;
-    }
-
-    /* gradient CTA button */
-    .stButton>button{
-        background:linear-gradient(135deg,#4b6bfb 0%,#38bdf8 100%);
-        color:#ffffff;font-weight:700;font-size:1.05rem;border:none;
-        padding:.9rem 1.9rem;border-radius:.75rem;
-        box-shadow:0 6px 16px rgba(59,130,246,.3);
-        transition:transform .12s ease,box-shadow .12s ease;
-    }
-    .stButton>button:hover{
-        transform:scale(1.04);
-        box-shadow:0 8px 22px rgba(59,130,246,.45);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-# ── LANDING GATE ────────────────────────────────────────────────────────────
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃                           Landing Page Logic                            ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 if "show_app" not in st.session_state:
     st.session_state.show_app = False
 
 if not st.session_state.show_app:
-    st.markdown(
-        """
-<div class="landing-wrapper">
-
-  <img src="https://raw.githubusercontent.com/hariharanweb/hosted-assets/main/conjectureq_logo.png"
-       alt="ConjectureQ logo" class="cq-logo"
-       onerror="this.style.display='none';">
-
-  <h1 class="cq-name">ConjectureQ</h1>
-
-  <p class="tagline">
-    A platform that <strong>gamifies open problems in theoretical fields</strong><br>
-    &mdash; transforming cutting-edge research questions into interactive coding challenges.
-  </p>
-
-  <div class="card-row">
-    <div class="card" onclick="window.location.hash='#solve'">
-      <h3>solve</h3>
-      <p>for developers</p>
-    </div>
-    <div class="card" onclick="window.location.hash='#test'">
-      <h3>test</h3>
-      <p>for breakers</p>
-    </div>
-  </div>
-
-</div>
-""",
-        unsafe_allow_html=True,
+    # Banner / Hero image (host your own or use this placeholder)
+    st.image(
+        "https://yourcdn.com/conjectureq_banner.png",
+        use_column_width=True
     )
 
-    if st.button("🚀 Enter ConjectureQ"):
+    st.markdown(
+        """
+        # Welcome to **ConjectureQ**  
+
+        _Gamify theoretical research by turning open problems into interactive coding challenges._
+
+        **🔍 What you’ll do:**  
+        - As a **Tester**, craft “adversarial” MNIST-style batches that break your peers’ sampling policies.  
+        - As a **Solver**, write a policy to queue training-data indices so your model stays robust.  
+
+        **🏆 Leaderboards:**  
+        Track top 🐉 Testers and 🧩 Solvers as you edge toward the frontier of ML puzzles.
+        """
+    )
+
+    if st.button("▶️ Enter ConjectureQ"):
         st.session_state.show_app = True
-        (st.rerun if hasattr(st,"rerun") else st.experimental_rerun())
+        st.experimental_rerun()
+
+    # Halt here until “Enter” is clicked
     st.stop()
 
-# ── MAIN APP  (logic untouched) ─────────────────────────────────────────────
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃                        Actual App Starts Below Here                      ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+# --- App Title (after landing) ---
 st.title("Conjecture Bytes:")
 
-CLIENT_ID="877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
-CLIENT_SECRET="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"
-REDIRECT_URI="https://conjectureq.streamlit.app/"
-TOKEN_KEY="my_super_secret_token_key_12345"
+# --- Authentication with hard-coded secrets ---
+CLIENT_ID     = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
+CLIENT_SECRET = "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"
+REDIRECT_URI  = "https://conjectureq.streamlit.app/"
+TOKEN_KEY     = "my_super_secret_token_key_12345"
 
-auth=Authenticator(client_id=CLIENT_ID,client_secret=CLIENT_SECRET,
-                   redirect_uri=REDIRECT_URI,token_key=TOKEN_KEY)
-auth.check_authentication()
+authenticator = Authenticator(
+    client_id     = CLIENT_ID,
+    client_secret = CLIENT_SECRET,
+    redirect_uri  = REDIRECT_URI,
+    token_key     = TOKEN_KEY,
+)
 
+authenticator.check_authentication()
+
+# If user is NOT connected, show login and bail
 if not st.session_state.get("connected"):
-    auth.login_widget(); st.stop()
+    st.image(
+        "https://www.googleapis.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
+        width=200,
+    )
+    st.header("Welcome!")
+    st.write("Please log in with your Google account to participate.")
+    authenticator.login_widget()
+    st.stop()
 
-st.sidebar.title(f"Welcome, {st.session_state['user_info'].get('name','User')}!")
-st.sidebar.image(st.session_state['user_info'].get('picture'),
-                 width=100,use_container_width=True)
-st.sidebar.write(f"**Email:** {st.session_state['user_info']['email']}")
-if st.sidebar.button("Logout"): auth.logout()
+# --- Sidebar with user info & logout ---
+st.sidebar.title(f"Welcome, {st.session_state['user_info'].get('name', 'User')}!")
+st.sidebar.image(
+    st.session_state['user_info'].get('picture'),
+    width=100,
+    use_column_width='auto'
+)
+st.sidebar.write(f"**Email:** {st.session_state['user_info'].get('email')}")
+if st.sidebar.button("Logout"):
+    authenticator.logout()
 
-tabs = st.tabs(["Problem Statement","Background","Solver",
-                "My Submissions","Tester","Discussion","Leaderboards"])
+# --- Tabs Setup ---
+tab_list = [
+    "Problem Statement",
+    "Background",
+    "Solver",
+    "My Submissions",
+    "Tester",
+    "Discussion",
+    "Leaderboards",
+]
+tabs = st.tabs(tab_list)
 
+# ----------------------- Problem Statement -------------------------------
 with tabs[0]:
-    st.header("Problem Statement"); st.markdown("…")
+    st.header("Problem Statement")
+    st.markdown(
+        """
+        **Conjecture (True Form):**
 
+        **Coding Challenge:**
+        """
+    )
+
+# ----------------------- Background --------------------------------------
 with tabs[1]:
-    st.header("Background"); st.markdown("…")
+    st.header("Background")
+    st.markdown(
+        """
+        - **Relevant Papers:** [An Introduction to Number Theory](https://www.ams.org/bookstore-getitem/item=ST-8)
+        - **Axioms and Definitions:** A **prime number** is a positive integer greater than 1 that has no positive divisors other than 1 and itself.
+        """
+    )
 
+# ----------------------- Solver Portal (NEW) -----------------------------
 with tabs[2]:
-    st.header("Solver Portal  🧩")
-    st.markdown("""```python
-def solve(n:int)->list[int]:
-    import random; random.seed(42)
-    return random.sample(range(n), k=n)
-```""")
-    code = st_ace(placeholder="# write solve(n)…", language="python",
-                  theme="monokai", key="solver_editor", height=280)
-    if st.button("Submit Solver"):
-        st.json(backend.run_solution_and_get_results(
-            st.session_state["user_info"]["email"], code))
+    st.header("Solver Portal  🧩  (write your sampling policy)")
+    st.markdown(
+        """
+        **Template**
 
+        ```python
+        # Mandatory signature
+        def solve(n_samples: int) -> list[int]:
+            import random
+            random.seed(42)          # keep it deterministic
+            return random.sample(range(n_samples), k=n_samples)
+        ```
+        """
+    )
+    code = st_ace(
+        placeholder="# define solve(n_samples) here…",
+        language="python",
+        theme="monokai",
+        key="solver_editor",
+        height=300,
+    )
+    if st.button("Submit Solver"):
+        email = st.session_state["user_info"]["email"]
+        out   = backend.run_solution_and_get_results(email, code)
+        st.json(out)
+
+# ----------------------- My Past Submissions -----------------------------
 with tabs[3]:
     st.header("My Past Submissions")
-    subs=database.get_user_submissions(st.session_state["user_info"]["email"])
+    email = st.session_state["user_info"]["email"]
+    subs  = database.get_user_submissions(email)
     if not subs:
-        st.info("None yet.")
+        st.info("You haven't submitted any solutions yet.")
     else:
-        for i,s in enumerate(reversed(subs)):
-            with st.expander(f"Submission #{len(subs)-i}", expanded=i==0):
-                st.code(s["code"]); st.write(f"Pass: {s.get('tests_passed',0)}")
+        for i, sub in enumerate(reversed(subs)):
+            with st.expander(f"Submission #{len(subs) - i}", expanded=(i == 0)):
+                st.code(sub["code"], language="python")
+                st.write(f"Pass: {sub.get('tests_passed', 0)}")
 
+# ----------------------- Tester Portal (NEW) ----------------------------
 with tabs[4]:
-    st.header("Tester Portal  🐉")
-    txt = st.text_area("Paste 784-length row list")
+    st.header("Tester Portal  🐉  (upload adversarial batch)")
+    st.markdown(
+        "Paste **Python-style** list of 784-long rows, e.g. `[[0,0,…,0],[…]]`"
+    )
+    test_input = st.text_area("Your batch here")
     if st.button("Submit Batch"):
-        st.json(backend.run_tester_and_get_feedback(
-            st.session_state["user_info"]["email"], txt))
+        email    = st.session_state["user_info"]["email"]
+        feedback = backend.run_tester_and_get_feedback(email, test_input)
+        st.json(feedback)
 
+# ----------------------- Discussion --------------------------------------
 with tabs[5]:
     st.header("Discussion")
-    msg = st.text_area("Add comment")
+    user_name = st.session_state["user_info"].get("name")
+    txt       = st.text_area("Add your comment or question:")
     if st.button("Post"):
-        database.add_comment(st.session_state["user_info"]["name"], msg)
-        st.success("Posted!")
+        database.add_comment(user_name, txt)
+        st.success("Your comment has been posted.")
+    st.subheader("Community Discussion")
     for c in reversed(database.get_comments()):
-        st.markdown(f"**{c['name']}** ({c.get('timestamp','')}):\n> {c['text']}")
+        st.markdown(f"**{c['name']}** ({c.get('timestamp', '')}):")
+        st.markdown(f"> {c['text']}")
 
+# ----------------------- Leaderboards ------------------------------------
 with tabs[6]:
     st.header("Leaderboards")
-    c1,c2 = st.columns(2)
-    with c1:
-        st.subheader("🏆 Solver")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("🏆 Solver Leaderboard")
         st.dataframe(backend.get_solver_leaderboard(), use_container_width=True)
-    with c2:
-        st.subheader("🎯 Tester")
+    with col2:
+        st.subheader("🎯 Tester Leaderboard")
+        st.dataframe(backend.get_tester_leaderboard(), use_container_width=True)
+
         st.dataframe(backend.get_tester_leaderboard(), use_container_width=True)
