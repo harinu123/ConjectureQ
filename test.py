@@ -427,122 +427,107 @@ import streamlit as st
 from streamlit_ace import st_ace
 import pandas as pd
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Local imports
-# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────── Local imports ──────────────────────────────
 import backend
 import database
 from authenticate import Authenticator
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Init & page meta
-# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────── Page meta ───────────────────────────────────
 database.init_db()
 st.set_page_config(page_title="ConjectureQ", layout="wide", page_icon="🧩")
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Global CSS  (Chewy font, pastel cards, hover effects)
-# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────── Global CSS  ────────────────────────────────
 st.markdown(
     """
     <style>
-      /* fonts */
-      @import url('https://fonts.googleapis.com/css2?family=Chewy&display=swap');
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+    /* Google fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Chewy&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
-      html, body, [class*="stApp"] {
-          font-family: 'Inter', sans-serif;
-          background: #fafafa;
-      }
+    html, body, [class*="stApp"] {
+        font-family: 'Inter', sans-serif;
+        background:#fafafa;
+    }
+    #MainMenu, header, footer {visibility:hidden;}
 
-      /* hide Streamlit chrome */
-      #MainMenu, header, footer {visibility:hidden;}
+    /* ── landing hero ── */
+    .landing-wrapper{
+        display:flex;flex-direction:column;align-items:center;
+        gap:1.2rem;margin-top:4rem;
+    }
+    .cq-logo{
+        width:180px;
+        object-fit:contain;
+        /* hide broken-image icons */
+        onerror:"this.style.display='none'";
+    }
+    .cq-name{
+        font-family:'Chewy',cursive;
+        font-size:5rem;margin:0;
+        color:#ff5fbf;                   /* bright readable pink */
+        text-shadow:0 3px 6px #ffb2e480;
+    }
+    .tagline{
+        font-size:1.25rem;color:#333;margin-top:-.35rem;
+    }
 
-      /* ---------- Landing page ---------- */
-      .landing-wrapper {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin-top: 4rem;
-          gap: 1.2rem;
-      }
-      .cq-logo       {width: 180px;}            /* placeholder image size       */
-      .cq-name {
-          font-family: 'Chewy', cursive;
-          font-size: 5rem;
-          margin: 0;
-          color: #ff7ac4;
-          text-shadow: 0 2px 4px #00000025;
-      }
-      .tagline {font-size:1.25rem;color:#444;margin-top:-.3rem;}
+    /* cards */
+    .card-row{display:flex;gap:2rem;margin-top:2.8rem;}
+    .card{
+        width:230px;padding:1.7rem 1rem;background:#fff;
+        border:2px dotted #ff7ac4;border-radius:20px;text-align:center;
+        transition:transform .15s,box-shadow .15s;
+        cursor:pointer;
+    }
+    .card:hover{transform:translateY(-6px);box-shadow:0 6px 12px #ffb2e440;}
+    .card h3{font-family:'Chewy',cursive;font-size:1.75rem;margin:0;color:#333;}
+    .card p{margin:.4rem 0 0;font-size:.9rem;font-style:italic;color:#777;}
 
-      /* card buttons ------------------------------------------------------- */
-      .card-row {display:flex;gap:2rem;margin-top:2.8rem;}
-      .card {
-          width: 230px; padding: 1.7rem 1rem;
-          background:#fff; border:2px dotted #ff7ac4; border-radius:20px;
-          text-align:center; transition:transform .15s,box-shadow .15s;
-          cursor:pointer;
-      }
-      .card:hover {transform:translateY(-6px);box-shadow:0 6px 12px #ffb2e440;}
-      .card h3 {font-family:'Chewy',cursive;font-size:1.75rem;margin:0;color:#333;}
-      .card p  {margin:.4rem 0 0;font-size:.9rem;font-style:italic;color:#777;}
-
-      /* fallback gradient button (keyboard/mobile) */
-      .stButton > button{
-          background:linear-gradient(135deg,#7f00ff 0%,#e100ff 100%);
-          color:#fff;border:none;padding:.8rem 1.7rem;border-radius:.7rem;
-          font-weight:600;font-size:1.05rem;
-      }
+    /* fallback Enter button */
+    .stButton > button{
+        background:linear-gradient(135deg,#7f00ff 0%,#e100ff 100%);
+        color:#fff;border:none;padding:.8rem 1.7rem;border-radius:.7rem;
+        font-weight:600;font-size:1.05rem;
+    }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Landing-page gate
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────── Landing gate ────────────────────────────────
 if "show_app" not in st.session_state:
     st.session_state.show_app = False
 
 if not st.session_state.show_app:
-
-    hero_html = textwrap.dedent(
+    hero = textwrap.dedent(
         """
         <div class="landing-wrapper">
-          <!-- replace src with your own transparent logo if desired -->
-          <img src="https://raw.githubusercontent.com/hariharanweb/hosted-assets/main/conjectureq_brain.png"
-               alt="ConjectureQ logo" class="cq-logo" />
-          <h1 class="cq-name">ConjectureQ</h1>
-          <p class="tagline">launch your AI bots into live battles</p>
+            <!-- swap src for your own logo, or delete the img tag entirely -->
+            <img src="https://raw.githubusercontent.com/hariharanweb/hosted-assets/main/conjectureq_logo.png"
+                 alt="ConjectureQ logo" class="cq-logo" />
+            <h1 class="cq-name">ConjectureQ</h1>
+            <p class="tagline">launch your AI bots into live battles</p>
 
-          <div class="card-row">
-            <div class="card" onclick="window.location.hash='#solve'">
-              <h3>solve</h3>
-              <p>for coders</p>
+            <div class="card-row">
+                <div class="card" onclick="window.location.hash='#solve'">
+                    <h3>solve</h3><p>for coders</p>
+                </div>
+                <div class="card" onclick="window.location.hash='#test'">
+                    <h3>test</h3><p>for breakers</p>
+                </div>
             </div>
-            <div class="card" onclick="window.location.hash='#test'">
-              <h3>test</h3>
-              <p>for breakers</p>
-            </div>
-          </div>
         </div>
         """
     )
-    st.markdown(hero_html, unsafe_allow_html=True)
+    st.markdown(hero, unsafe_allow_html=True)
 
-    # Fallback “Enter” button
-    st.write("")
     if st.button("🚀  Enter ConjectureQ"):
         st.session_state.show_app = True
         (st.rerun if hasattr(st, "rerun") else st.experimental_rerun)()
 
     st.stop()
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  Main application (unchanged except CSS / light bg)
-# ─────────────────────────────────────────────────────────────────────────────
-
+# ─────────────────────────────── Main app ───────────────────────────────────
 st.title("Conjecture Bytes:")
 
 CLIENT_ID     = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
@@ -559,13 +544,7 @@ authenticator = Authenticator(
 authenticator.check_authentication()
 
 if not st.session_state.get("connected"):
-    st.image(
-        "https://www.gstatic.com/devrel-devsite/prod/vdfc4eb75c2eaf6c6eed333df406cfea918a1962d65aa2184141f24a7910ec7e9/firebase/images/touchicon-180.png",
-        width=200,
-        use_container_width=True,
-    )
     st.header("Welcome!")
-    st.write("Please log in with your Google account to participate.")
     authenticator.login_widget()
     st.stop()
 
@@ -575,15 +554,13 @@ st.sidebar.image(
     width=100,
     use_container_width=True,
 )
-st.sidebar.write(f"**Email:** {st.session_state['user_info'].get('email')}")
+st.sidebar.write(f"**Email:** {st.session_state['user_info']['email']}")
 if st.sidebar.button("Logout"):
     authenticator.logout()
 
-# ---------------- Tabs ---------------------------------
-tab_list = [
-    "Problem Statement", "Background", "Solver",
-    "My Submissions", "Tester", "Discussion", "Leaderboards"
-]
+# ───────── Tabs & content (same as before) ─────────
+tab_list = ["Problem Statement","Background","Solver",
+            "My Submissions","Tester","Discussion","Leaderboards"]
 tabs = st.tabs(tab_list)
 
 with tabs[0]:
@@ -611,16 +588,17 @@ def solve(n:int)->list[int]:
         height=280,
     )
     if st.button("Submit Solver"):
-        out = backend.run_solution_and_get_results(
-            st.session_state["user_info"]["email"], code
+        st.json(
+            backend.run_solution_and_get_results(
+                st.session_state["user_info"]["email"], code
+            )
         )
-        st.json(out)
 
 with tabs[3]:
     st.header("My Past Submissions")
     subs = database.get_user_submissions(st.session_state["user_info"]["email"])
     if not subs:
-        st.info("You haven't submitted any solutions yet.")
+        st.info("None yet.")
     else:
         for i, sub in enumerate(reversed(subs)):
             with st.expander(f"Submission #{len(subs)-i}", expanded=i == 0):
@@ -631,10 +609,11 @@ with tabs[4]:
     st.header("Tester Portal  🐉")
     test_input = st.text_area("Paste 784-length row list")
     if st.button("Submit Batch"):
-        fb = backend.run_tester_and_get_feedback(
-            st.session_state["user_info"]["email"], test_input
+        st.json(
+            backend.run_tester_and_get_feedback(
+                st.session_state["user_info"]["email"], test_input
+            )
         )
-        st.json(fb)
 
 with tabs[5]:
     st.header("Discussion")
@@ -647,13 +626,12 @@ with tabs[5]:
 
 with tabs[6]:
     st.header("Leaderboards")
-    c1, c2 = st.columns(2)
-    with c1:
+    col1, col2 = st.columns(2)
+    with col1:
         st.subheader("🏆 Solver")
         st.dataframe(backend.get_solver_leaderboard(), use_container_width=True)
-    with c2:
+    with col2:
         st.subheader("🎯 Tester")
         st.dataframe(backend.get_tester_leaderboard(), use_container_width=True)
-
 
 
