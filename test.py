@@ -539,7 +539,7 @@ with tabs[0]:
         """
     )
 
-# ----------------------- Background --------------------------------------
+# ----------------------- Challenger --------------------------------------
 with tabs[1]:
     st.header("Challenger")
     st.markdown(
@@ -550,16 +550,6 @@ with tabs[1]:
     )
 
 with tabs[2]:
-    st.header("Tester")
-    st.markdown(
-        """
-        - Goal: Design a sampling policy
-        - Requirements: **Axioms and Definitions:** A **prime number** is a positive integer greater than 1 that has no positive divisors other than 1 and itself.
-        """
-    )
-
-# ----------------------- Solver Portal (NEW) -----------------------------
-with tabs[3]:
     st.header("Challenger Portal  🧩  (write your sampling policy)")
     st.markdown(
         """
@@ -586,8 +576,30 @@ with tabs[3]:
         out   = backend.run_solution_and_get_results(email, code)
         st.json(out)
 
-# ----------------------- My Past Submissions -----------------------------
+# ----------------------- Tester -----------------------------
+
+with tabs[3]:
+    st.header("Tester")
+    st.markdown(
+        """
+        - Goal: Design a sampling policy
+        - Requirements: **Axioms and Definitions:** A **prime number** is a positive integer greater than 1 that has no positive divisors other than 1 and itself.
+        """
+    )
+
 with tabs[4]:
+    st.header("Tester Portal  🐉  (upload adversarial batch)")
+    st.markdown(
+        "Paste **Python-style** list of 784-long rows, e.g. `[[0,0,…,0],[…]]`"
+    )
+    test_input = st.text_area("Your batch here")
+    if st.button("Submit Batch"):
+        email    = st.session_state["user_info"]["email"]
+        feedback = backend.run_tester_and_get_feedback(email, test_input)
+        st.json(feedback)
+
+# ----------------------- My  Submissions -----------------------------
+with tabs[5]:
     st.header("My Submissions")
     email = st.session_state["user_info"]["email"]
     subs  = database.get_user_submissions(email)
@@ -599,17 +611,6 @@ with tabs[4]:
                 st.code(sub["code"], language="python")
                 st.write(f"Pass: {sub.get('tests_passed', 0)}")
 
-# ----------------------- Tester Portal (NEW) ----------------------------
-with tabs[5]:
-    st.header("Tester Portal  🐉  (upload adversarial batch)")
-    st.markdown(
-        "Paste **Python-style** list of 784-long rows, e.g. `[[0,0,…,0],[…]]`"
-    )
-    test_input = st.text_area("Your batch here")
-    if st.button("Submit Batch"):
-        email    = st.session_state["user_info"]["email"]
-        feedback = backend.run_tester_and_get_feedback(email, test_input)
-        st.json(feedback)
 
 # ----------------------- Discussion --------------------------------------
 with tabs[6]:
