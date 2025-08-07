@@ -1,6 +1,17 @@
-streamlit-ace
-bcrypt
-google-auth-oauthlib==1.2.1
-google-api-python-client==2.149.0
-pyjwt==2.9.0
-extra-streamlit-components==0.1.71
+# streamlit-ace
+# bcrypt
+# google-auth-oauthlib==1.2.1
+# google-api-python-client==2.149.0
+# pyjwt==2.9.0
+# extra-streamlit-components==0.1.71
+
+
+streamlit==1.34.0
+streamlit-ace==0.2.1
+
+# NEW ↓
+torch==2.2.2
+torchvision==0.17.2          # brings torchvision.datasets.MNIST
+numpy==1.26.4
+scipy==1.12.0                # KL implementation
+scikit-learn==1.5.0          # train/test split utils
