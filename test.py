@@ -581,10 +581,10 @@ with tabs[2]:
 with tabs[3]:
     st.header("Tester")
     st.markdown(
-        """
+r"""
 ## Tester — Submit a Dataset *Far* from MNIST
 
-**Goal.** Upload a synthetic dataset \(X_{\text{synth}} \in \mathbb{R}^{n \times 784}\) (flattened \(28\times28\)) whose **pixel-value distribution** is maximally different from MNIST, measured by **symmetric KL divergence**.
+**Goal.** Upload a synthetic dataset $X_{\text{synth}} \in \mathbb{R}^{n \times 784}$ (flattened $28\times 28$) whose **pixel-value distribution** is maximally different from MNIST, measured by **symmetric KL divergence**.
 
 ---
 
@@ -600,41 +600,45 @@ with tabs[3]:
 ---
 
 ### Scoring (higher is better)
-Let \(P_{\text{real}}\) be the MNIST pixel distribution and \(P_{\text{synth}}\) be the distribution from the uploaded batch. We compute one **global pixel histogram** for each:
+Let $P_{\text{real}}$ be the MNIST pixel distribution and $P_{\text{synth}}$ be the distribution from the uploaded batch. We compute one **global pixel histogram** for each:
 
 - **Histogram spec:** 50 bins over **[-1, 1]** (inclusive).
-- **Smoothing:** add \(\varepsilon=10^{-8}\) to every bin to avoid zeros.
+- **Smoothing:** add $\varepsilon=10^{-8}$ to every bin to avoid zeros.
+"""
+)
 
-\[
-D_{\text{sym}}(P_{\text{real}}, P_{\text{synth}}) \;=\;
-D_{KL}(P_{\text{real}} \,\|\, P_{\text{synth}}) \;+\;
-D_{KL}(P_{\text{synth}} \,\|\, P_{\text{real}})
-\]
+st.latex(r"""
+D_{\text{sym}}(P_{\text{real}}, P_{\text{synth}})
+= D_{KL}(P_{\text{real}} \,\|\, P_{\text{synth}})
++ D_{KL}(P_{\text{synth}} \,\|\, P_{\text{real}})
+""")
 
-The leaderboard shows each tester’s **best** \(D_{\text{sym}}\) to date.
+st.markdown(
+    r"""
+The leaderboard shows each tester’s **best** $D_{\text{sym}}$ to date.
 
 ---
 
 ### Fixed reference (for consistency)
 - **Dataset:** MNIST train (60,000 images).
-- **Preprocessing:** images flattened to 784 and normalized with mean \(0.5\), std \(0.5\) (so pixels lie roughly in **[-1, 1]**).
-- The **reference histogram** \(P_{\text{real}}\) is precomputed once from the above.
+- **Preprocessing:** images flattened to 784 and normalized with mean $0.5$, std $0.5$ (so pixels lie roughly in **[-1, 1]**).
+- The **reference histogram** $P_{\text{real}}$ is precomputed once from the above.
 
 ---
 
 ### Rules & constraints
 - **Originality:** Do not upload MNIST samples or trivially perturbed MNIST—submissions must be synthetic or from an independent generator.
 - **Validity checks:** CSV must be 2D (n×784). Non-numeric entries are rejected. Values outside [-1, 1] are **clipped**.
-- **Size limits:** Recommended \(n \le 1024\) per upload (larger files may be rejected for runtime/memory reasons).
+- **Size limits:** Recommended $n \le 1024$ per upload (larger files may be rejected for runtime/memory reasons).
 - **Privacy:** The CSV should contain only pixel values (no personal data, no labels).
 
 ---
 
 ### Baseline intuition
 - Uniform noise in [-1, 1] is a simple baseline.
-- To increase \(D_{\text{sym}}\), place probability mass in pixel-value regions rare in MNIST—while remembering symmetric KL penalizes empty bins on either side (smoothing mitigates this).
+- To increase $D_{\text{sym}}$, place probability mass in pixel-value regions rare in MNIST—while remembering symmetric KL penalizes empty bins on either side (smoothing mitigates this).
 """
-    )
+)
 
 
     
