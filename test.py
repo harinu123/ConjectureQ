@@ -448,24 +448,23 @@ st.markdown(
     .cq-logo{width:180px;object-fit:contain;}
     .cq-name{
         font-family:'Chewy',cursive;
-        font-size:5rem;margin:0;
-        color:#ff228c;                       /* darker pink for contrast */
+        font-size:7rem;                      /* 🔼 MUCH LARGER */
+        margin:0;
+        color:#ff228c;
         text-shadow:0 4px 8px #ff92cb;
     }
-    .tagline{font-size:1.25rem;color:#333;margin-top:-.35rem;}
+    .tagline{font-size:1.15rem;color:#333;margin-top:-.6rem;}
 
     /* cards */
     .card-row{display:flex;gap:2rem;margin-top:2.8rem;}
-    .card{
-        width:230px;padding:1.7rem 1rem;background:#fff;
-        border:2px dotted #ff7ac4;border-radius:20px;text-align:center;
-        transition:transform .15s,box-shadow .15s;cursor:pointer;
-    }
+    .card{width:230px;padding:1.7rem 1rem;background:#fff;
+          border:2px dotted #ff7ac4;border-radius:20px;text-align:center;
+          transition:transform .15s,box-shadow .15s;cursor:pointer;}
     .card:hover{transform:translateY(-6px);box-shadow:0 6px 12px #ffb2e440;}
     .card h3{font-family:'Chewy',cursive;font-size:1.75rem;margin:0;color:#333;}
     .card p{margin:.4rem 0 0;font-size:.9rem;font-style:italic;color:#777;}
 
-    /* fallback Enter button */
+    /* fallback button */
     .stButton>button{
         background:linear-gradient(135deg,#7f00ff 0%,#e100ff 100%);
         color:#fff;border:none;padding:.8rem 1.7rem;border-radius:.7rem;
@@ -483,12 +482,11 @@ if "show_app" not in st.session_state:
 if not st.session_state.show_app:
     hero_html = """
 <div class="landing-wrapper">
-  <!-- Replace src with your real logo; hidden completely if 404s -->
   <img src="https://raw.githubusercontent.com/hariharanweb/hosted-assets/main/conjectureq_logo.png"
        alt="ConjectureQ logo" class="cq-logo"
        onerror="this.style.display='none';">
   <h1 class="cq-name">ConjectureQ</h1>
-  <p class="tagline">launch your AI bots into live battles</p>
+  <p class="tagline">a platform that gamifies open problems in theoretical fields — turning cutting-edge research questions into interactive coding challenges</p>
 
   <div class="card-row">
     <div class="card" onclick="window.location.hash='#solve'">
@@ -502,9 +500,9 @@ if not st.session_state.show_app:
 """
     st.markdown(hero_html, unsafe_allow_html=True)
 
-    if st.button("🚀  Enter ConjectureQ"):
+    if st.button("🚀 Enter ConjectureQ"):
         st.session_state.show_app = True
-        (st.rerun if hasattr(st, "rerun") else st.experimental_rerun())
+        (st.rerun if hasattr(st,"rerun") else st.experimental_rerun())
     st.stop()
 
 # ── main app (unchanged logic) ──────────────────────────────────────────────
@@ -522,31 +520,27 @@ auth.check_authentication()
 if not st.session_state.get("connected"):
     auth.login_widget(); st.stop()
 
-# ── sidebar
 st.sidebar.title(f"Welcome, {st.session_state['user_info'].get('name','User')}!")
 st.sidebar.image(st.session_state['user_info'].get('picture'),
                  width=100,use_container_width=True)
 st.sidebar.write(f"**Email:** {st.session_state['user_info']['email']}")
 if st.sidebar.button("Logout"): auth.logout()
 
-# ── tabs
 tabs = st.tabs(["Problem Statement","Background","Solver",
                 "My Submissions","Tester","Discussion","Leaderboards"])
 
 with tabs[0]:
-    st.header("Problem Statement")
-    st.markdown("…")
+    st.header("Problem Statement"); st.markdown("…")
 
 with tabs[1]:
-    st.header("Background")
-    st.markdown("…")
+    st.header("Background"); st.markdown("…")
 
 with tabs[2]:
     st.header("Solver Portal  🧩")
     st.markdown("""```python
 def solve(n:int)->list[int]:
     import random; random.seed(42)
-    return random.sample(range(n), k=n)
+    return random.sample(range(n),k=n)
 ```""")
     code = st_ace(placeholder="# write solve(n)…", language="python",
                   theme="monokai", key="solver_editor", height=280)
@@ -556,14 +550,13 @@ def solve(n:int)->list[int]:
 
 with tabs[3]:
     st.header("My Past Submissions")
-    subs = database.get_user_submissions(st.session_state["user_info"]["email"])
+    subs=database.get_user_submissions(st.session_state["user_info"]["email"])
     if not subs:
         st.info("None yet.")
     else:
-        for i, s in enumerate(reversed(subs)):
+        for i,s in enumerate(reversed(subs)):
             with st.expander(f"Submission #{len(subs)-i}", expanded=i==0):
-                st.code(s["code"])
-                st.write(f"Pass: {s.get('tests_passed',0)}")
+                st.code(s["code"]); st.write(f"Pass: {s.get('tests_passed',0)}")
 
 with tabs[4]:
     st.header("Tester Portal  🐉")
@@ -583,10 +576,11 @@ with tabs[5]:
 
 with tabs[6]:
     st.header("Leaderboards")
-    col1, col2 = st.columns(2)
+    col1,col2 = st.columns(2)
     with col1:
         st.subheader("🏆 Solver")
         st.dataframe(backend.get_solver_leaderboard(), use_container_width=True)
     with col2:
         st.subheader("🎯 Tester")
         st.dataframe(backend.get_tester_leaderboard(), use_container_width=True)
+
