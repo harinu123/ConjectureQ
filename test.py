@@ -508,7 +508,7 @@ if not st.session_state.get("connected"):
 st.sidebar.title(f"Welcome, {st.session_state['user_info'].get('name', 'User')}!")
 st.sidebar.image(
     st.session_state['user_info'].get('picture'),
-    width=100,
+    width=60,
     use_container_width='auto'
 )
 st.sidebar.write(f"**Email:** {st.session_state['user_info'].get('email')}")
