@@ -434,42 +434,42 @@ from authenticate import Authenticator
 database.init_db()
 
 # --- Page Config (and landing-state) ---
-st.set_page_config(page_title="ConjectureQ", layout="wide")
+# st.set_page_config(page_title="ConjectureQ", layout="wide")
 
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃                           Landing Page Logic                            ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-if "show_app" not in st.session_state:
-    st.session_state.show_app = False
+# # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# # ┃                           Landing Page Logic                            ┃
+# # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+# if "show_app" not in st.session_state:
+#     st.session_state.show_app = False
 
-if not st.session_state.show_app:
-    # Banner / Hero image (host your own or use this placeholder)
-    st.image(
-        "https://yourcdn.com/conjectureq_banner.png",
-        use_column_width=True
-    )
+# if not st.session_state.show_app:
+#     # Banner / Hero image (host your own or use this placeholder)
+#     st.image(
+#         "https://yourcdn.com/conjectureq_banner.png",
+#         use_column_width=True
+#     )
 
-    st.markdown(
-        """
-        # Welcome to **ConjectureQ**  
+#     st.markdown(
+#         """
+#         # Welcome to **ConjectureQ**  
 
-        _Gamify theoretical research by turning open problems into interactive coding challenges._
+#         _Gamify theoretical research by turning open problems into interactive coding challenges._
 
-        **🔍 What you’ll do:**  
-        - As a **Tester**, craft “adversarial” MNIST-style batches that break your peers’ sampling policies.  
-        - As a **Solver**, write a policy to queue training-data indices so your model stays robust.  
+#         **🔍 What you’ll do:**  
+#         - As a **Tester**, craft “adversarial” MNIST-style batches that break your peers’ sampling policies.  
+#         - As a **Solver**, write a policy to queue training-data indices so your model stays robust.  
 
-        **🏆 Leaderboards:**  
-        Track top 🐉 Testers and 🧩 Solvers as you edge toward the frontier of ML puzzles.
-        """
-    )
+#         **🏆 Leaderboards:**  
+#         Track top 🐉 Testers and 🧩 Solvers as you edge toward the frontier of ML puzzles.
+#         """
+#     )
 
-    if st.button("▶️ Enter ConjectureQ"):
-        st.session_state.show_app = True
-        st.experimental_rerun()
+#     if st.button("▶️ Enter ConjectureQ"):
+#         st.session_state.show_app = True
+#         st.experimental_rerun()
 
-    # Halt here until “Enter” is clicked
-    st.stop()
+#     # Halt here until “Enter” is clicked
+#     st.stop()
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃                        Actual App Starts Below Here                      ┃
