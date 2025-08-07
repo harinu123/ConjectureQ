@@ -517,11 +517,12 @@ if st.sidebar.button("Logout"):
 
 # --- Tabs Setup ---
 tab_list = [
-    "Problem Statement",
-    "Background",
+    "Overview",
+    "Challenger",
     "Solver",
+    "Challenger Submission Portal
     "My Submissions",
-    "Tester",
+    "Tester Submission Portal",
     "Discussion",
     "Leaderboards",
 ]
@@ -529,7 +530,7 @@ tabs = st.tabs(tab_list)
 
 # ----------------------- Problem Statement -------------------------------
 with tabs[0]:
-    st.header("Problem Statement")
+    st.header("Overview")
     st.markdown(
         """
         **Conjecture (True Form):**
@@ -540,17 +541,26 @@ with tabs[0]:
 
 # ----------------------- Background --------------------------------------
 with tabs[1]:
-    st.header("Background")
+    st.header("Challenger")
     st.markdown(
         """
-        - **Relevant Papers:** [An Introduction to Number Theory](https://www.ams.org/bookstore-getitem/item=ST-8)
-        - **Axioms and Definitions:** A **prime number** is a positive integer greater than 1 that has no positive divisors other than 1 and itself.
+        - Goal: Design a sampling policy
+        - Requirements: **Axioms and Definitions:** A **prime number** is a positive integer greater than 1 that has no positive divisors other than 1 and itself.
+        """
+    )
+
+with tabs[2]:
+    st.header("Tester")
+    st.markdown(
+        """
+        - Goal: Design a sampling policy
+        - Requirements: **Axioms and Definitions:** A **prime number** is a positive integer greater than 1 that has no positive divisors other than 1 and itself.
         """
     )
 
 # ----------------------- Solver Portal (NEW) -----------------------------
-with tabs[2]:
-    st.header("Solver Portal  🧩  (write your sampling policy)")
+with tabs[3]:
+    st.header("Challenger Portal  🧩  (write your sampling policy)")
     st.markdown(
         """
         **Template**
@@ -577,8 +587,8 @@ with tabs[2]:
         st.json(out)
 
 # ----------------------- My Past Submissions -----------------------------
-with tabs[3]:
-    st.header("My Past Submissions")
+with tabs[4]:
+    st.header("My Submissions")
     email = st.session_state["user_info"]["email"]
     subs  = database.get_user_submissions(email)
     if not subs:
@@ -590,7 +600,7 @@ with tabs[3]:
                 st.write(f"Pass: {sub.get('tests_passed', 0)}")
 
 # ----------------------- Tester Portal (NEW) ----------------------------
-with tabs[4]:
+with tabs[5]:
     st.header("Tester Portal  🐉  (upload adversarial batch)")
     st.markdown(
         "Paste **Python-style** list of 784-long rows, e.g. `[[0,0,…,0],[…]]`"
@@ -602,7 +612,7 @@ with tabs[4]:
         st.json(feedback)
 
 # ----------------------- Discussion --------------------------------------
-with tabs[5]:
+with tabs[6]:
     st.header("Discussion")
     user_name = st.session_state["user_info"].get("name")
     txt       = st.text_area("Add your comment or question:")
@@ -615,7 +625,7 @@ with tabs[5]:
         st.markdown(f"> {c['text']}")
 
 # ----------------------- Leaderboards ------------------------------------
-with tabs[6]:
+with tabs[7]:
     st.header("Leaderboards")
     col1, col2 = st.columns(2)
     with col1:
