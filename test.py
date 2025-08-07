@@ -96,9 +96,9 @@ if st.sidebar.button("Logout"):
 tab_list = [
     "Overview",
     "Solver",
-    "Submission Portal",
+    "Solver Submission",
     "Tester",
-    "Submission Portal",
+    "Tester Submission",
     "My Submissions",  
     "Discussion",
     "Leaderboards",
@@ -118,7 +118,7 @@ with tabs[0]:
 
 # ----------------------- Challenger --------------------------------------
 with tabs[1]:
-    st.header("Solver")
+    st.header("Adaptive Sampling Policy")
     st.markdown(
     # r"""
     # **Goal.** Implement a **stateful sampling policy** that chooses which indices to feed to SGD so the **average training loss over K steps** (AULC) is minimized.
@@ -143,7 +143,6 @@ with tabs[1]:
     # Tie-breakers: final loss at step $K$, then wall-clock time.
     #         """
     r"""
-    ## Adaptive Sampling Policy 
     
     ### Objective
     Design a **sampling policy** that selects, at each training step $t$, a batch of indices from the current pool so as to **minimize the average training loss** over $K$ SGD updates.
