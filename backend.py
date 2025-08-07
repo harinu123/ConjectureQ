@@ -220,21 +220,21 @@ def evaluate_tester_csv(
         pass
 
     # 4) Optional plots
-    plots = None
-    if show_plots:
-        plots = {}
-        centers = (edges[:-1] + edges[1:]) / 2
-        width = (edges[1] - edges[0])
+    # plots = None
+    # if show_plots:
+    #     plots = {}
+    #     centers = (edges[:-1] + edges[1:]) / 2
+    #     width = (edges[1] - edges[0])
 
-        fig1 = plt.figure()
-        plt.bar(centers, h_real / h_real.sum(), width=width)
-        plt.title("MNIST pixel histogram (normalized)")
-        plots["mnist"] = fig1
+    #     fig1 = plt.figure()
+    #     plt.bar(centers, h_real / h_real.sum(), width=width)
+    #     plt.title("MNIST pixel histogram (normalized)")
+    #     plots["mnist"] = fig1
 
-        fig2 = plt.figure()
-        plt.bar(centers, h_synth / h_synth.sum(), width=width)
-        plt.title("Your batch histogram (normalized)")
-        plots["synth"] = fig2
+    #     fig2 = plt.figure()
+    #     plt.bar(centers, h_synth / h_synth.sum(), width=width)
+    #     plt.title("Your batch histogram (normalized)")
+    #     plots["synth"] = fig2
 
     return {
         "status": "Completed",
