@@ -120,29 +120,104 @@ with tabs[0]:
 with tabs[1]:
     st.header("Solver")
     st.markdown(
+    # r"""
+    # **Goal.** Implement a **stateful sampling policy** that chooses which indices to feed to SGD so the **average training loss over K steps** (AULC) is minimized.
+    
+    # **Fixed training setup (hosted):** MNIST (flattened, normalized to $[-1,1]$), 2-layer MLP $784\!\to\!128\!\xrightarrow{\mathrm{ReLU}}\!10$, Cross-Entropy loss, SGD (lr=0.1), batch=256, seed=1337.
+    
+    # **Telemetry you receive each step (for the batch you chose):**
+    # - `indices`: the indices you sampled
+    # - `per_sample_losses`: ndarray[batch] (CE per item)
+    # - *Optional (may be enabled in the portal later):* `probs` (softmax logits), `grad_norm_x` ($\|\nabla_x \ell\|_2$ per item)
+    
+    # **Submission API (required):**
+    # - Provide a factory `build_policy(pool_size: int, seed: int) -> SolverPolicy`
+    # - The returned object must implement:
+    #   - `sample(batch_size: int) -> np.ndarray[int]`
+    #   - `update(indices, per_sample_losses, probs=None, grad_norm_x=None) -> None`
+    
+    # **Score (lower is better):**
+    # \[
+    # \text{AULC}=\frac{1}{K}\sum_{t=1}^{K}\mathcal{L}_t
+    # \]
+    # Tie-breakers: final loss at step $K$, then wall-clock time.
+    #         """
     r"""
-    **Goal.** Implement a **stateful sampling policy** that chooses which indices to feed to SGD so the **average training loss over K steps** (AULC) is minimized.
+    ## Design a Sampling Policy
     
-    **Fixed training setup (hosted):** MNIST (flattened, normalized to $[-1,1]$), 2-layer MLP $784\!\to\!128\!\xrightarrow{\mathrm{ReLU}}\!10$, Cross-Entropy loss, SGD (lr=0.1), batch=256, seed=1337.
+    ### Objective
+    Design a sampling policy  
+    $$
+    \pi(i)
+    $$  
+    over the current training pool indices so that, when batches are drawn according to  
+    $$
+    \pi
+    $$  
+    and trained with SGD on the fixed model, the **average training loss** over \(K\) steps is minimised.
     
-    **Telemetry you receive each step (for the batch you chose):**
-    - `indices`: the indices you sampled
-    - `per_sample_losses`: ndarray[batch] (CE per item)
-    - *Optional (may be enabled in the portal later):* `probs` (softmax logits), `grad_norm_x` ($\|\nabla_x \ell\|_2$ per item)
+    ---
     
-    **Submission API (required):**
-    - Provide a factory `build_policy(pool_size: int, seed: int) -> SolverPolicy`
-    - The returned object must implement:
-      - `sample(batch_size: int) -> np.ndarray[int]`
-      - `update(indices, per_sample_losses, probs=None, grad_norm_x=None) -> None`
+    ### Score (lower is better)
+    We compute the **Average Under the Loss Curve**:
     
-    **Score (lower is better):**
-    \[
-    \text{AULC}=\frac{1}{K}\sum_{t=1}^{K}\mathcal{L}_t
-    \]
-    Tie-breakers: final loss at step $K$, then wall-clock time.
-            """
+    $$
+    \text{AULC} = \frac{1}{K} \sum_{t=1}^{K} L_t
+    $$
     
+    - \(L_t\) = mean loss at step \(t\) on the chosen batch.
+    - **Tie-breakers:** final loss at step \(K\), then wall-clock time.
+    
+    ---
+    
+    ### Fixed Training Setup *(hosted by ConjectureQ)*
+    - **Dataset:** MNIST train (\(60{,}000\) images).  
+      - Images flattened to 784.  
+      - Normalised via:
+        $$
+        \frac{x}{255} - 0.5 \; \bigg/ \; 0.5 \in [-1, 1]
+        $$
+    - **Model:** 2-layer MLP
+      $$
+      784 \;\to\; 128 \;\to\; \text{ReLU} \;\to\; 10 \;(\text{logits})
+      $$
+    - **Optimiser:** SGD (no momentum), learning rate \(0.1\)  
+    - **Loss:** Cross-Entropy  
+    - **Batch size:** 256  
+    - **Horizon:** \(K = 100\) steps *(configurable in the portal)*  
+    - **Seed:** 1337 (applies to model init, dataloading, and any platform-side RNG)
+    
+    ---
+    
+    ### Control and Restrictions
+    - The **platform** controls: model, optimiser, weight updates.  
+    - The **solver** controls: the order in which dataset indices are fed to the model.
+    - The solver **must** output a permutation of all indices \(0, \dots, n_{\text{samples}} - 1\).
+    
+    ---
+    
+    ### Telemetry (semi-white-box)
+    After each step, the platform returns **only for the batch you chose**:
+    - `indices`: sampled indices (already known to the solver).
+    - `per_sample_losses`:  
+      \(\texttt{float[batch]}\) from CE loss with `reduction='none'`.
+    
+    **Optional toggles** *(default ON)*:
+    - `probs`: \(\texttt{float[batch, 10]}\) — softmax probabilities of logits.
+    - `grad_norm_x`: \(\texttt{float[batch]}\) — per-sample input-gradient norms
+      $$
+      \lVert \nabla_x \ell \rVert_2
+      $$
+      a cheap, useful proxy for importance sampling.
+    
+    ---
+    
+    **Not exposed:**  
+    - Full model weights  
+    - Global per-sample gradients
+    
+    ---
+    """
     )
 
 with tabs[2]:
