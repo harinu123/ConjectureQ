@@ -163,6 +163,7 @@
 #         st.dataframe(backend.get_tester_leaderboard(), use_container_width=True)
 
 
+import textwrap
 import streamlit as st
 from streamlit_ace import st_ace
 import pandas as pd
@@ -181,65 +182,46 @@ database.init_db()
 st.set_page_config(page_title="ConjectureQ", layout="wide", page_icon="🧩")
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  Inject global CSS  (Google font, gradient background, button styling, …)
+#  Global CSS (Google font, gradient background, button styling, …)
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
 
-    html, body, [class*="stApp"]  {
-        font-family: 'Inter', sans-serif;
-        background: radial-gradient(circle at top left, #0f2027, #203a43, #2c5364);
-    }
+      html, body, [class*="stApp"]  {
+          font-family: 'Inter', sans-serif;
+          background: radial-gradient(circle at top left, #0f2027, #203a43, #2c5364);
+      }
 
-    /* Hide Streamlit default header & footer */
-    #MainMenu {visibility: hidden;}
-    footer    {visibility: hidden;}
-    header    {visibility: hidden;}
+      /* Hide Streamlit default chrome */
+      #MainMenu {visibility: hidden;}
+      footer, header {visibility: hidden;}
 
-    /* ---------- Landing page styles ---------- */
-    .landing-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-        padding: 4rem 2rem;
-        color: #ffffff;
-    }
-    .landing-wrapper h1 {
-        font-size: 3.4rem;
-        font-weight: 800;
-        margin-bottom: 0.25rem;
-    }
-    .landing-wrapper .subtitle {
-        font-size: 1.2rem;
-        font-weight: 300;
-        opacity: 0.9;
-        margin-top: 0;
-    }
-    .landing-wrapper ul {
-        font-size: 1.05rem;
-        margin-left: 1.25rem;
-        line-height: 1.5;
-    }
-    .landing-wrapper li::marker { content: "• "; color: #db5cff; }
+      /* ---------- Landing page styles ---------- */
+      .landing-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: .5rem;
+          padding: 4rem 2rem;
+          color: #fff;
+      }
+      .landing-wrapper h1   {font-size: 3.4rem; font-weight: 800; margin: 0 0 .25rem 0;}
+      .landing-wrapper .sub {font-size: 1.2rem; font-weight: 300; opacity: .9;}
+      .landing-wrapper ul   {font-size: 1.05rem; margin-left: 1.25rem; line-height: 1.5;}
+      .landing-wrapper li::marker {content: "• "; color: #db5cff;}
 
-    /* style the Streamlit button generated for Enter */
-    .stButton > button {
-        background: linear-gradient(135deg,#7f00ff 0%,#e100ff 100%);
-        color: #fff;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.6rem;
-        font-size: 1.05rem;
-        font-weight: 600;
-        transition: all 120ms ease-in-out;
-    }
-    .stButton > button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 10px #e100ff80;
-    }
+      /* nice gradient button */
+      .stButton > button {
+          background: linear-gradient(135deg,#7f00ff 0%,#e100ff 100%);
+          color: #fff; border: none; padding: .75rem 1.5rem;
+          border-radius: .6rem; font-size: 1.05rem; font-weight: 600;
+          transition: transform .12s ease-in-out, box-shadow .12s;
+      }
+      .stButton > button:hover {
+          transform: scale(1.05);
+          box-shadow: 0 0 10px #e100ff80;
+      }
     </style>
     """,
     unsafe_allow_html=True,
@@ -252,38 +234,37 @@ if "show_app" not in st.session_state:
     st.session_state.show_app = False
 
 if not st.session_state.show_app:
-
-    # ---------- HERO / LANDING -----------
-    st.markdown(
+    hero_html = textwrap.dedent(
         """
         <div class="landing-wrapper">
-            <h1>Welcome to ConjectureQ</h1>
-            <p class="subtitle">
-                Gamify theoretical research by turning open problems into interactive coding challenges.
-            </p>
+          <h1>Welcome to ConjectureQ</h1>
+          <p class="sub">Gamify theoretical research by turning open problems into interactive coding challenges.</p>
 
-            <h4>🔍&nbsp;What you’ll do:</h4>
-            <ul>
-              <li><strong>Tester</strong> – craft <em>adversarial</em> MNIST batches that break your peers’ sampling policies.</li>
-              <li><strong>Solver</strong> – write a policy to queue training-data indices so your model stays robust.</li>
-            </ul>
+          <h4>🔍&nbsp;What you’ll do:</h4>
+          <ul>
+            <li><strong>Tester</strong> – craft <em>adversarial</em> MNIST batches that break your peers’ sampling policies.</li>
+            <li><strong>Solver</strong> – write a policy to queue training-data indices so your model stays robust.</li>
+          </ul>
 
-            <h4>🏆&nbsp;Leaderboards:</h4>
-            <p>Track top 🐉 Testers and 🧩 Solvers as you edge toward the frontier of ML puzzles.</p>
+          <h4>🏆&nbsp;Leaderboards:</h4>
+          <p>Track top 🐉 Testers and 🧩 Solvers as you edge toward the frontier of ML puzzles.</p>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
+    st.markdown(hero_html, unsafe_allow_html=True)
 
-    # pretty “Enter” button
-    if st.button("▶️  Enter ConjectureQ"):
+    if st.button("▶️ Enter ConjectureQ"):
         st.session_state.show_app = True
-        st.experimental_rerun()
+        # Streamlit ≥1.29 renamed experimental_rerun → rerun
+        if hasattr(st, "rerun"):
+            st.rerun()
+        else:
+            st.experimental_rerun()
 
-    st.stop()  # ── nothing below runs until the user clicks Enter ──────────
+    st.stop()                     # ← nothing below executes until “Enter” is hit
 
 # ╭──────────────────────────────────────────────────────────────────────────╮
-# │                Main Application (unchanged apart from CSS)               │
+# │                       Main Application starts here                       │
 # ╰──────────────────────────────────────────────────────────────────────────╯
 
 st.title("Conjecture Bytes:")
@@ -369,7 +350,7 @@ with tabs[2]:
         def solve(n_samples: int) -> list[int]:
             import random
             random.seed(42)
-            return random.sample(range(n_samples), k=n_samples)  # uniform shuffle
+            return random.sample(range(n_samples), k=n_samples)
         ```
         """
     )
@@ -439,3 +420,4 @@ with tabs[6]:
             backend.get_tester_leaderboard(),
             use_container_width=True
         )
+
