@@ -421,164 +421,146 @@
 #             use_container_width=True
 #         )
 
-import streamlit as st, textwrap
+import streamlit as st
 from streamlit_ace import st_ace
-import pandas as pd
-
-# ── local imports
 import backend, database
 from authenticate import Authenticator
 
-# ── page
+# ───────────────────────────  Init & page  ────────────────────────────
 database.init_db()
 st.set_page_config("ConjectureQ", "🧩", layout="wide")
 
-# ── global CSS ──────────────────────────────────────────────────────────────
+# ───────────────────────────  Global CSS  ─────────────────────────────
 st.markdown(
     """
     <style>
+    /* fonts */
     @import url('https://fonts.googleapis.com/css2?family=Chewy&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
-    html,body,[class*="stApp"]{font-family:'Inter',sans-serif;background:#fafafa;}
+    html,body,[class*="stApp"]{
+        font-family:'Inter',sans-serif;
+        background:#f7f9fc;             /* very light grey-blue */
+    }
     #MainMenu,header,footer{visibility:hidden;}
 
-    .landing-wrapper{display:flex;flex-direction:column;align-items:center;gap:1.2rem;margin-top:4rem;}
-    .cq-logo{width:200px;object-fit:contain;}
+    /* ── Landing hero ───────────────────────── */
+    .landing-wrapper{
+        display:flex;flex-direction:column;align-items:center;
+        gap:1.2rem;margin-top:4rem;
+    }
+    .cq-logo{width:200px;object-fit:contain}
     .cq-name{
         font-family:'Chewy',cursive;
-        font-size:9rem;                      /* 🔥 EVEN BIGGER */
-        margin:0;
-        color:#ff228c;
-        text-shadow:0 6px 12px #ff9dd2;
-        line-height:0.9;
+        font-size:9rem;                 /* huge title */
+        margin:0;line-height:.9;
+        background:linear-gradient(90deg,#3f51b5,#009688);
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:transparent;
+        text-shadow:0 6px 12px rgba(0,0,0,.15);
     }
-    .tagline{font-size:1.15rem;color:#333;margin-top:-.8rem;}
+    .tagline{
+        font-size:1.15rem;
+        color:#34495e;
+        margin-top:-.8rem;
+        max-width:900px;text-align:center;
+    }
 
+    /* cards */
     .card-row{display:flex;gap:2rem;margin-top:2.8rem;}
-    .card{width:230px;padding:1.7rem 1rem;background:#fff;
-          border:2px dotted #ff7ac4;border-radius:20px;text-align:center;
-          transition:transform .15s,box-shadow .15s;cursor:pointer;}
-    .card:hover{transform:translateY(-6px);box-shadow:0 6px 12px #ffb2e440;}
-    .card h3{font-family:'Chewy',cursive;font-size:1.75rem;margin:0;color:#333;}
-    .card p{margin:.4rem 0 0;font-size:.9rem;font-style:italic;color:#777;}
-
-    .stButton>button{
-        background:linear-gradient(135deg,#7f00ff 0%,#e100ff 100%);
-        color:#fff;border:none;padding:.8rem 1.7rem;border-radius:.7rem;
-        font-weight:600;font-size:1.05rem;
+    .card{
+        width:230px;padding:1.7rem 1rem;background:#ffffff;
+        border:2px dotted #3f51b5;border-radius:20px;text-align:center;
+        transition:transform .15s,box-shadow .15s;
+        cursor:pointer;
     }
+    .card:hover{
+        transform:translateY(-6px);
+        box-shadow:0 8px 16px rgba(63,81,181,.25);
+    }
+    .card h3{
+        font-family:'Chewy',cursive;font-size:1.8rem;margin:0;color:#263238;
+    }
+    .card p{
+        margin:.45rem 0 0;
+        font-size:.9rem;font-style:italic;color:#607d8b;
+    }
+
+    /* gradient button */
+    .stButton>button{
+        background:linear-gradient(135deg,#3f51b5 0%,#009688 100%);
+        color:#fff;border:none;padding:.8rem 1.8rem;border-radius:.7rem;
+        font-weight:600;font-size:1.05rem;
+        box-shadow:0 4px 8px rgba(0,0,0,.2);
+    }
+    .stButton>button:hover{transform:scale(1.03);}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# ── landing gate ────────────────────────────────────────────────────────────
+# ───────────────────────────  Landing gate  ───────────────────────────
 if "show_app" not in st.session_state:
     st.session_state.show_app = False
 
 if not st.session_state.show_app:
-    hero_html = """
+    st.markdown(
+        """
 <div class="landing-wrapper">
   <img src="https://raw.githubusercontent.com/hariharanweb/hosted-assets/main/conjectureq_logo.png"
        alt="ConjectureQ logo" class="cq-logo"
        onerror="this.style.display='none';">
+
   <h1 class="cq-name">ConjectureQ</h1>
-  <p class="tagline">a platform that gamifies open problems in theoretical fields — turning cutting-edge research questions into interactive coding challenges</p>
+  <p class="tagline">
+    A platform that <strong>gamifies open problems in theoretical fields</strong> —
+    turning cutting-edge research questions into interactive coding challenges.
+  </p>
 
   <div class="card-row">
     <div class="card" onclick="window.location.hash='#solve'">
-      <h3>solve</h3><p>for coders</p>
+       <h3>solve</h3><p>for coders</p>
     </div>
     <div class="card" onclick="window.location.hash='#test'">
-      <h3>test</h3><p>for breakers</p>
+       <h3>test</h3><p>for breakers</p>
     </div>
   </div>
 </div>
-"""
-    st.markdown(hero_html, unsafe_allow_html=True)
+""",
+        unsafe_allow_html=True,
+    )
 
     if st.button("🚀 Enter ConjectureQ"):
         st.session_state.show_app = True
-        (st.rerun if hasattr(st,"rerun") else st.experimental_rerun())
+        (st.rerun if hasattr(st, "rerun") else st.experimental_rerun())
     st.stop()
 
-# ── main app (unchanged) ────────────────────────────────────────────────────
+# ───────────────────────────  Main app  ───────────────────────────────
 st.title("Conjecture Bytes:")
 
-CLIENT_ID="877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
-CLIENT_SECRET="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"
-REDIRECT_URI="https://conjectureq.streamlit.app/"
-TOKEN_KEY="my_super_secret_token_key_12345"
+CLIENT_ID     = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
+CLIENT_SECRET = "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"
+REDIRECT_URI  = "https://conjectureq.streamlit.app/"
+TOKEN_KEY     = "my_super_secret_token_key_12345"
 
-auth=Authenticator(client_id=CLIENT_ID,client_secret=CLIENT_SECRET,
-                   redirect_uri=REDIRECT_URI,token_key=TOKEN_KEY)
+auth = Authenticator(
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
+    redirect_uri=REDIRECT_URI,
+    token_key=TOKEN_KEY,
+)
 auth.check_authentication()
 
 if not st.session_state.get("connected"):
-    auth.login_widget(); st.stop()
+    auth.login_widget()
+    st.stop()
 
+# Sidebar
 st.sidebar.title(f"Welcome, {st.session_state['user_info'].get('name','User')}!")
-st.sidebar.image(st.session_state['user_info'].get('picture'),
-                 width=100,use_container_width=True)
-st.sidebar.write(f"**Email:** {st.session_state['user_info']['email']}")
-if st.sidebar.button("Logout"): auth.logout()
-
-tabs = st.tabs(["Problem Statement","Background","Solver",
-                "My Submissions","Tester","Discussion","Leaderboards"])
-
-with tabs[0]:
-    st.header("Problem Statement"); st.markdown("…")
-
-with tabs[1]:
-    st.header("Background"); st.markdown("…")
-
-with tabs[2]:
-    st.header("Solver Portal  🧩")
-    st.markdown("""```python
-def solve(n:int)->list[int]:
-    import random; random.seed(42)
-    return random.sample(range(n),k=n)
-```""")
-    code = st_ace(placeholder="# write solve(n)…", language="python",
-                  theme="monokai", key="solver_editor", height=280)
-    if st.button("Submit Solver"):
-        st.json(backend.run_solution_and_get_results(
-            st.session_state["user_info"]["email"], code))
-
-with tabs[3]:
-    st.header("My Past Submissions")
-    subs=database.get_user_submissions(st.session_state["user_info"]["email"])
-    if not subs: st.info("None yet.")
-    else:
-        for i,s in enumerate(reversed(subs)):
-            with st.expander(f"Submission #{len(subs)-i}", expanded=i==0):
-                st.code(s["code"]); st.write(f"Pass: {s.get('tests_passed',0)}")
-
-with tabs[4]:
-    st.header("Tester Portal  🐉")
-    txt = st.text_area("Paste 784-length row list")
-    if st.button("Submit Batch"):
-        st.json(backend.run_tester_and_get_feedback(
-            st.session_state["user_info"]["email"], txt))
-
-with tabs[5]:
-    st.header("Discussion")
-    msg = st.text_area("Add comment")
-    if st.button("Post"):
-        database.add_comment(st.session_state["user_info"]["name"], msg)
-        st.success("Posted!")
-    for c in reversed(database.get_comments()):
-        st.markdown(f"**{c['name']}** ({c.get('timestamp','')}):\n> {c['text']}")
-
-with tabs[6]:
-    st.header("Leaderboards")
-    col1,col2 = st.columns(2)
-    with col1:
-        st.subheader("🏆 Solver")
-        st.dataframe(backend.get_solver_leaderboard(), use_container_width=True)
-    with col2:
-        st.subheader("🎯 Tester")
-        st.dataframe(backend.get_tester_leaderboard(), use_container_width=True)
-
+st.sidebar.image(
+    st.session_state['user_info'].get('picture'),
+    width=100,
+    use_container_width=True
+)
+st.sidebar.write(f"**Email:** {st.session_state['user_info']['email]()_]()_
 
