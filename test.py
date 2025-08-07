@@ -120,10 +120,29 @@ with tabs[0]:
 with tabs[1]:
     st.header("Solver")
     st.markdown(
-        """
-        - Goal: Design a sampling policy
-        - Requirements: **Axioms and Definitions:** A **prime number** is a positive integer greater than 1 that has no positive divisors other than 1 and itself.
-        """
+    r"""
+    **Goal.** Implement a **stateful sampling policy** that chooses which indices to feed to SGD so the **average training loss over K steps** (AULC) is minimized.
+    
+    **Fixed training setup (hosted):** MNIST (flattened, normalized to $[-1,1]$), 2-layer MLP $784\!\to\!128\!\xrightarrow{\mathrm{ReLU}}\!10$, Cross-Entropy loss, SGD (lr=0.1), batch=256, seed=1337.
+    
+    **Telemetry you receive each step (for the batch you chose):**
+    - `indices`: the indices you sampled
+    - `per_sample_losses`: ndarray[batch] (CE per item)
+    - *Optional (may be enabled in the portal later):* `probs` (softmax logits), `grad_norm_x` ($\|\nabla_x \ell\|_2$ per item)
+    
+    **Submission API (required):**
+    - Provide a factory `build_policy(pool_size: int, seed: int) -> SolverPolicy`
+    - The returned object must implement:
+      - `sample(batch_size: int) -> np.ndarray[int]`
+      - `update(indices, per_sample_losses, probs=None, grad_norm_x=None) -> None`
+    
+    **Score (lower is better):**
+    \[
+    \text{AULC}=\frac{1}{K}\sum_{t=1}^{K}\mathcal{L}_t
+    \]
+    Tie-breakers: final loss at step $K$, then wall-clock time.
+            """
+    
     )
 
 with tabs[2]:
