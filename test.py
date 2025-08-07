@@ -642,18 +642,65 @@ with tabs[3]:
     )
     
 
-    
+# --------- Tester Submission portal ------------    
+
+# with tabs[4]:
+#     st.header("Submission Portal  🐉  (upload adversarial batch)")
+#     st.markdown(
+#         "Paste **Python-style** list of 784-long rows, e.g. `[[0,0,…,0],[…]]`"
+#     )
+#     test_input = st.text_area("Your batch here")
+#     if st.button("Submit Batch"):
+#         email    = st.session_state["user_info"]["email"]
+#         feedback = backend.run_tester_and_get_feedback(email, test_input)
+#         st.json(feedback)
+
 
 with tabs[4]:
     st.header("Submission Portal  🐉  (upload adversarial batch)")
     st.markdown(
-        "Paste **Python-style** list of 784-long rows, e.g. `[[0,0,…,0],[…]]`"
+        r"""
+Upload a **CSV** with **n rows × 784 columns** (one flattened $28\times28$ image per row).
+
+- Header row: optional.
+- Values: floats in **[-1, 1]** (we’ll clip to [-1,1] before scoring).
+- Score: **symmetric KL divergence** between your batch’s pixel histogram and MNIST’s (50 bins over [-1,1]).
+        """
     )
-    test_input = st.text_area("Your batch here")
-    if st.button("Submit Batch"):
-        email    = st.session_state["user_info"]["email"]
-        feedback = backend.run_tester_and_get_feedback(email, test_input)
-        st.json(feedback)
+
+    uploaded = st.file_uploader("Choose CSV file", type=["csv"])
+
+    col1, col2 = st.columns(2)
+    with col1:
+        show_plots = st.checkbox("Show histogram plots", value=False)
+    with col2:
+        clip_vals = st.checkbox("Clip to [-1,1] before scoring", value=True)
+
+    if uploaded is not None and st.button("Submit Batch"):
+        email = st.session_state["user_info"]["email"]
+        out = backend.evaluate_tester_csv(
+            tester_name=email,
+            file_bytes=uploaded.read(),
+            clip=clip_vals,
+            show_plots=show_plots,
+        )
+        if out.get("status") == "Completed":
+            st.success(f"KL_sym = {out['kl_sym']:.6f}  |  n = {out['n_samples']}")
+            st.json({k: out[k] for k in ["kl_sym", "n_samples", "bins", "range"]})
+            if show_plots and "plots" in out:
+                st.pyplot(out["plots"]["mnist"])
+                st.pyplot(out["plots"]["synth"])
+        else:
+            st.error(out.get("error", "Upload failed"))
+
+    # Optional helper: sample CSV
+    import io, pandas as pd, numpy as np
+    if st.button("Download sample CSV"):
+        demo = np.random.uniform(-1, 1, size=(5, 784)).astype("float32")
+        buf = io.StringIO()
+        pd.DataFrame(demo).to_csv(buf, index=False, header=False)
+        st.download_button("sample.csv", data=buf.getvalue(), file_name="sample.csv", mime="text/csv")
+        
 
 # ----------------------- My  Submissions -----------------------------
 with tabs[5]:
