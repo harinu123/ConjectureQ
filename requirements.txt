@@ -13,7 +13,7 @@ extra-streamlit-components==0.1.71
 
 
 streamlit
-# streamlit-ace
+streamlit-ace
 
 # new
 torch
