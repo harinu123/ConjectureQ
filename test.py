@@ -582,7 +582,7 @@ with tabs[3]:
     st.header("Tester")
     st.markdown(
 r"""
-## Tester — Submit a Dataset *Far* from MNIST
+## Submit a Dataset *Far* from MNIST
 
 **Goal.** Upload a synthetic dataset $X_{\text{synth}} \in \mathbb{R}^{n \times 784}$ (flattened $28\times 28$) whose **pixel-value distribution** is maximally different from MNIST, measured by **symmetric KL divergence**.
 
