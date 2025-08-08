@@ -1061,30 +1061,52 @@ with tabs[6]:
 
     st.subheader("Community Discussion")
 
-    # Get real comments
+    # --- Real comments (as before) ---
     comments = list(reversed(database.get_comments()))
 
-    # Add fake comments (no timestamp)
-    fake_comments = [
-        {"name": "Meera3215", "text": "Has anyone tried weighting the sampler based on recent batch losses? I’m seeing mixed results."},
-        {"name": "Emily_01", "text": "@Meera3215 I did something similar — it helped early on but plateaued quickly."},
-        {"name": "SunQian", "text": "Pro tip: avoid oversampling noisy test submissions, they tank the score."},
-        {"name": "Wang2", "text": "Interesting, my divergence metric seems to reward harder datasets more than expected."},
-        {"name": "Arjun Nair", "text": "Lol my policy keeps picking the same 50 samples. Need to fix that."},
-        {"name": "RohanGupta", "text": "Tester gang — I’ve got a new set of images coming that should trip up most solvers."},
-        {"name": "Li Wei", "text": "That’s evil 😂 but I love it. Curious to see how they hold up."},
-        {"name": "Karthik_RE", "text": "Is the leaderboard updating instantly or on a delay? Mine took a while."},
-        {"name": "Chen Hao", "text": "I think it’s on a small delay — probably batching updates."},
-        {"name": "Alex99", "text": "Anybody else trying to make their policy adapt mid-training?"},
-        {"name": "Aarav_Sharma", "text": "Yes! But it’s tricky without overfitting to the tester pool."},
+    # --- Fake comments spaced over the last ~1.5 weeks ---
+    from datetime import datetime, timedelta
+    import random
+    random.seed(2025)  # deterministic so it doesn't jump around each refresh
+
+    now = datetime.now()
+    fake_bodies = [
+        ("Meera3215",   "Has anyone tried weighting the sampler based on recent batch losses? I’m seeing mixed results."),
+        ("Emily_01",    "@Meera3215 I did something similar — it helped early on but plateaued quickly."),
+        ("SunQian",     "Pro tip: avoid oversampling noisy test submissions, they tank the score."),
+        ("Wang2",       "Interesting, my divergence metric seems to reward harder datasets more than expected."),
+        ("Arjun Nair",  "Lol my policy keeps picking the same 50 samples. Need to fix that."),
+        ("RohanGupta",  "Tester gang — I’ve got a new set of images coming that should trip up most solvers."),
+        ("Li Wei",      "That’s evil 😂 but I love it. Curious to see how they hold up."),
+        ("Karthik_RE",  "Is the leaderboard updating instantly or on a delay? Mine took a while."),
+        ("Chen Hao",    "I think it’s on a small delay — probably batching updates."),
+        ("Alex99",      "Anybody else trying to make their policy adapt mid-training?"),
+        ("Aarav_Sharma","Yes! But it’s tricky without overfitting to the tester pool."),
     ]
 
-    # Merge fake + real
-    comments.extend(fake_comments)
+    # spread uniformly over the past 11 days (≈1.5 weeks), randomize hour/minute
+    fake_comments = []
+    span_days = 11
+    for i, (name, text) in enumerate(fake_bodies):
+        days_ago = random.uniform(0, span_days)        # 0..11 days
+        hours    = random.randint(0, 23)
+        minutes  = random.randint(0, 59)
+        ts = (now - timedelta(days=days_ago)).replace(hour=hours, minute=minutes, second=0, microsecond=0)
+        fake_comments.append({"name": name, "text": text, "timestamp": ts.strftime("%Y-%m-%d %H:%M")})
 
-    # Render
+    # --- Merge and sort newest->oldest by timestamp if present ---
+    def _parse_ts(c):
+        try:
+            return datetime.strptime(c.get("timestamp", ""), "%Y-%m-%d %H:%M")
+        except Exception:
+            return datetime.fromtimestamp(0)
+
+    comments.extend(fake_comments)
+    comments = sorted(comments, key=_parse_ts, reverse=True)
+
+    # --- Render ---
     for c in comments:
-        st.markdown(f"**{c['name']}**:")
+        st.markdown(f"**{c['name']}** ({c.get('timestamp','')}):")
         st.markdown(f"> {c['text']}")
 
 # --- Leaderboards tab (frontend-only, fixed names + fake scores) ---
