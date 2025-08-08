@@ -509,10 +509,10 @@ authenticator.check_authentication()
 
 # If user is NOT connected, show login and bail
 if not st.session_state.get("connected"):
-    st.image(
-        "https://www.googleapis.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
-        width=200,
-    )
+    # st.image(
+    #     "https://www.googleapis.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
+    #     width=200,
+    # )
     st.header("Welcome!")
     st.write("Please log in with your Google account to participate.")
     authenticator.login_widget()
@@ -1041,11 +1041,11 @@ with tabs[4]:
     st.header("Submission Portal  🐉 ")
     st.markdown(
         r"""
-Upload a **CSV** with **n rows × 784 columns** (one flattened $28\times28$ image per row).
-
-- Header row: optional.
-- Values: floats in **[-1, 1]** (we’ll clip to [-1,1] before scoring).
-- Score: **symmetric KL divergence** between your batch’s pixel histogram and MNIST’s (50 bins over [-1,1]).
+    Upload a **CSV** with **n rows × 784 columns** (one flattened $28\times28$ image per row).
+    
+    - Header row: optional.
+    - Values: floats in **[-1, 1]** (we’ll clip to [-1,1] before scoring).
+    - Score: **symmetric KL divergence** between your batch’s pixel histogram and MNIST’s (50 bins over [-1,1]).
         """
     )
 
