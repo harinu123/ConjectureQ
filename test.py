@@ -1118,14 +1118,13 @@ with tabs[7]:
 
     # Fixed rosters
     SOLVER_NAMES = [
-        "Aarav Sharma", "Priya Iyer", "Rohan Gupta", "Neha Menon", "Karthik Reddy",
-        "Li Wei", "Zhang Min", "Chen Hao", "Liu Yang",
-        "Alex Carter",
+        "Meera3215", "Arjun Nair",
+        "Wang2", "Sun Qian",
+        "Emily_01",
     ]
     TESTER_NAMES = [
-        "Meera Joshi", "Arjun Nair",
-        "Wang Jing", "Sun Qian",
-        "Emily Clark",
+        "Aarav_Sharma", "Meera3215", "RohanGupta", "SunQian", "Karthik_RE",
+        "Li Wei", "Emily_01", "Chen Hao","Alex99"
     ]
 
     # Deterministic fake scores (seeded so it stays stable)
