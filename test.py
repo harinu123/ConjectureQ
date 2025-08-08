@@ -1082,7 +1082,7 @@ with tabs[6]:
         st.markdown(f"> {c['text']}")
 
 # --- Leaderboards tab (frontend-only, fixed names + fake scores) ---
-with tabs[6]:
+with tabs[7]:
     st.header("Leaderboards")
 
     import numpy as np, pandas as pd
