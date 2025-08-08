@@ -916,6 +916,35 @@ The **platform** runs the updates; the **solver** controls **which indices** are
 # ----------------------- Solver Submission --------------------------------
 with tabs[2]:
     st.header("Submission Portal  🧩  (write your sampling policy)")
+        st.markdown("**Preferred (new) API — batch-wise, stateful policy with telemetry**")
+    st.code(
+        """def build_policy(pool_size: int, seed: int):
+    class MyPolicy:
+        def __init__(self, n, s):
+            import numpy as np, random
+            self.n = int(n)
+            random.seed(int(s))
+            # EMA of per-sample losses for simple hard-example sampling
+            self.loss_ema = np.zeros(self.n, dtype=float)
+            self.beta = 0.9
+
+        def sample(self, batch_size: int):
+            import numpy as np
+            if np.all(self.loss_ema == 0):
+                # cold start: uniform with replacement
+                return np.random.choice(self.n, size=batch_size, replace=True).astype(int)
+            # pick largest-EMA items (top-k)
+            order = np.argsort(-self.loss_ema)
+            return order[:batch_size].astype(int)
+
+        def update(self, indices, per_sample_losses, probs=None, grad_norm_x=None):
+            # in-place EMA update for the items we just saw
+            self.loss_ema[indices] = self.beta * self.loss_ema[indices] + (1 - self.beta) * per_sample_losses
+
+    return MyPolicy(pool_size, seed)
+""",
+        language="python",
+    )
     code = st_ace(
         placeholder="# define build_policy(pool_size, seed) or legacy solve(n_samples) here…",
         language="python",
