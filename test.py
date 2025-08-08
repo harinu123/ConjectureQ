@@ -1081,28 +1081,13 @@ with tabs[6]:
         st.markdown(f"**{c['name']}** ({c.get('timestamp', '')}):")
         st.markdown(f"> {c['text']}")
 
-# ----------------------- Leaderboards ------------------------------------
-with tabs[7]:
+# --- Leaderboards tab (frontend-only, fixed names + fake scores) ---
+with tabs[6]:
     st.header("Leaderboards")
 
-    # 1) Pull current data from backend
-    raw_solver = backend.get_solver_leaderboard()
-    raw_tester = backend.get_tester_leaderboard()
+    import numpy as np, pandas as pd
 
-    # 2) Normalize to have a 'Score' column
-    def to_score(df, fallback_col):
-        if df.empty:
-            return df
-        if "Score" not in df.columns:
-            if "score" in df.columns:   df = df.rename(columns={"score": "Score"})
-            elif fallback_col in df.columns: df = df.rename(columns={fallback_col: "Score"})
-            else: df["Score"] = 0.0
-        return df
-
-    raw_solver = to_score(raw_solver, "Pass")
-    raw_tester = to_score(raw_tester, "Breaks")
-
-    # 3) Fixed display names (10 solvers, 5 testers)
+    # Fixed rosters
     SOLVER_NAMES = [
         "Aarav Sharma", "Priya Iyer", "Rohan Gupta", "Neha Menon", "Karthik Reddy",
         "Li Wei", "Zhang Min", "Chen Hao", "Liu Yang",
@@ -1114,23 +1099,32 @@ with tabs[7]:
         "Emily Clark",
     ]
 
-    # 4) Replace the 'User' column with our fixed names (truncate to available rows)
-    def apply_names(df, names, topk):
-        if df.empty:
-            return pd.DataFrame({"Rank": [], "User": [], "Score": []})
-        df = df.sort_values(by="Score", ascending=False).reset_index(drop=True)
+    # Deterministic fake scores (seeded so it stays stable)
+    rng = np.random.default_rng(2025)
+    # Solvers: pretend it's an accuracy-like score in [0.70, 0.95]
+    solver_scores = rng.uniform(0.70, 0.95, size=len(SOLVER_NAMES))
+    # Testers: pretend it's a divergence/impact score in [1.2, 3.2]
+    tester_scores = rng.uniform(1.2, 3.2, size=len(TESTER_NAMES))
+
+    # Build DataFrames, sort by Score desc, add Rank, format
+    def build_board(names, scores):
+        df = pd.DataFrame({"User": names, "Score": scores})
+        df = df.sort_values("Score", ascending=False).reset_index(drop=True)
         df["Rank"] = df.index + 1
-        df["User"] = names[: len(df)]
-        return df[["Rank", "User", "Score"]].head(topk)
+        # reorder columns
+        df = df[["Rank", "User", "Score"]]
+        # round score for display
+        df["Score"] = df["Score"].map(lambda x: f"{x:.3f}")
+        return df
+
+    solver_df = build_board(SOLVER_NAMES, solver_scores)
+    tester_df = build_board(TESTER_NAMES, tester_scores)
 
     col1, col2 = st.columns(2)
-
     with col1:
         st.subheader("🏆 Solver Leaderboard")
-        solver_df = apply_names(raw_solver, SOLVER_NAMES, topk=10)
-        st.dataframe(solver_df, use_container_width=True)
+        st.dataframe(solver_df, use_container_width=True, hide_index=True)
 
     with col2:
         st.subheader("🎯 Tester Leaderboard")
-        tester_df = apply_names(raw_tester, TESTER_NAMES, topk=5)
-        st.dataframe(tester_df, use_container_width=True)
+        st.dataframe(tester_df, use_container_width=True, hide_index=True)
