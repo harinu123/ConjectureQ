@@ -126,6 +126,33 @@ def init_db():
         df = pd.DataFrame(columns=["username", "hashed_password"])
         df.to_csv(USERS_FILE, index=False)
 
+def seed_sample_leaderboards():
+    # only seed if empty
+    if not _read_db(DB_FILES["solvers"]):
+        solvers = [
+            {"name":"Aarav Sharma","code":"", "score":0.83},
+            {"name":"Priya Iyer","code":"", "score":0.79},
+            {"name":"Rohan Gupta","code":"", "score":0.76},
+            {"name":"Neha Menon","code":"", "score":0.75},
+            {"name":"Karthik Reddy","code":"", "score":0.73},
+            {"name":"Li Wei","code":"", "score":0.82},
+            {"name":"Zhang Min","code":"", "score":0.78},
+            {"name":"Chen Hao","code":"", "score":0.77},
+            {"name":"Liu Yang","code":"", "score":0.74},
+            {"name":"Alex Carter","code":"", "score":0.71},  # one white name
+        ]
+        _write_db(DB_FILES["solvers"], solvers)
+
+    if not _read_db(DB_FILES["testers"]):
+        testers = [
+            {"name":"Meera Joshi","score":2.35},
+            {"name":"Arjun Nair","score":2.12},
+            {"name":"Wang Jing","score":2.05},
+            {"name":"Sun Qian","score":1.98},
+            {"name":"Emily Clark","score":1.85},  # one white name
+        ]
+        _write_db(DB_FILES["testers"], testers)
+
 # --- User Functions (New) ---
 def add_user(username, password):
     """Adds a new user to the users.csv file with a hashed password."""
@@ -170,15 +197,12 @@ def _write_db(file_path, data):
 # --- Existing Functions (Modified to include username) ---
 def add_solver(name: str, code: str):
     solvers = _read_db(DB_FILES["solvers"])
-    # Check if this user already has a submission
-    for solver in solvers:
-        if solver['name'] == name:
-            solver['code'] = code # Update existing code
+    for s in solvers:
+        if s['name'] == name:
+            s['code'] = code
             _write_db(DB_FILES["solvers"], solvers)
             return
-            
-    # Add new submission with user's name
-    solvers.append({"name": name, "code": code, "tests_passed": 0})
+    solvers.append({"name": name, "code": code, "score": 0})
     _write_db(DB_FILES["solvers"], solvers)
 
 def get_user_submissions(username: str):
@@ -189,23 +213,25 @@ def get_user_submissions(username: str):
 def get_solvers():
     return _read_db(DB_FILES["solvers"])
 
-def update_solver_score(name: str, score: int):
+def update_solver_score(name: str, score: float):
     solvers = _read_db(DB_FILES["solvers"])
-    for solver in solvers:
-        if solver['name'] == name:
-            solver['tests_passed'] = score
+    for s in solvers:
+        if s['name'] == name:
+            s['score'] = float(score)
             break
+    else:
+        solvers.append({"name": name, "code": "", "score": float(score)})
     _write_db(DB_FILES["solvers"], solvers)
 
 # --- Other functions remain the same ---
-def update_tester_score(name: str, breaks_found: int):
+def update_tester_score(name: str, score: float):
     testers = _read_db(DB_FILES["testers"])
-    for tester in testers:
-        if tester['name'] == name:
-            tester['breaks_found'] += breaks_found
+    for t in testers:
+        if t['name'] == name:
+            t['score'] = float(score)
             _write_db(DB_FILES["testers"], testers)
             return
-    testers.append({"name": name, "breaks_found": breaks_found})
+    testers.append({"name": name, "score": float(score)})
     _write_db(DB_FILES["testers"], testers)
 
 def get_testers():
