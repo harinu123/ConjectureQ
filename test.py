@@ -916,7 +916,7 @@ The **platform** runs the updates; the **solver** controls **which indices** are
 # ----------------------- Solver Submission --------------------------------
 with tabs[2]:
     st.header("Submission Portal  🧩  (write your sampling policy)")
-        st.markdown("**Preferred (new) API — batch-wise, stateful policy with telemetry**")
+    st.markdown("**Preferred (new) API — batch-wise, stateful policy with telemetry**")
     st.code(
         """def build_policy(pool_size: int, seed: int):
     class MyPolicy:
