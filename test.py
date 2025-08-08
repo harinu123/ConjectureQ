@@ -587,120 +587,226 @@ with tabs[0]:
         """
     )
 
-# ----------------------- Challenger --------------------------------------
+# # ----------------------- Challenger --------------------------------------
+# with tabs[1]:
+#     st.header("Adaptive Sampling Policy")
+#     st.markdown(
+#     # r"""
+#     # **Goal.** Implement a **stateful sampling policy** that chooses which indices to feed to SGD so the **average training loss over K steps** (AULC) is minimized.
+    
+#     # **Fixed training setup (hosted):** MNIST (flattened, normalized to $[-1,1]$), 2-layer MLP $784\!\to\!128\!\xrightarrow{\mathrm{ReLU}}\!10$, Cross-Entropy loss, SGD (lr=0.1), batch=256, seed=1337.
+    
+#     # **Telemetry you receive each step (for the batch you chose):**
+#     # - `indices`: the indices you sampled
+#     # - `per_sample_losses`: ndarray[batch] (CE per item)
+#     # - *Optional (may be enabled in the portal later):* `probs` (softmax logits), `grad_norm_x` ($\|\nabla_x \ell\|_2$ per item)
+    
+#     # **Submission API (required):**
+#     # - Provide a factory `build_policy(pool_size: int, seed: int) -> SolverPolicy`
+#     # - The returned object must implement:
+#     #   - `sample(batch_size: int) -> np.ndarray[int]`
+#     #   - `update(indices, per_sample_losses, probs=None, grad_norm_x=None) -> None`
+    
+#     # **Score (lower is better):**
+#     # \[
+#     # \text{AULC}=\frac{1}{K}\sum_{t=1}^{K}\mathcal{L}_t
+#     # \]
+#     # Tie-breakers: final loss at step $K$, then wall-clock time.
+#     #         """
+#     r"""
+    
+#     ### Objective
+#     Design a **sampling policy** that selects, at each training step $t$, a batch of indices from the current pool so as to **minimize** the following scoring function.
+    
+    
+#     Let:
+    
+#     - $ N $ — total number of tester datasets.  
+#     - $ P_i $ — dataset from the $ i $-th tester.  
+#     - $ d(P_i, \text{MNIST}) $ — a divergence score measuring how far dataset $ D_i $ is from MNIST.  
+    
+    
+#     $$
+#     \text{Score} \;=\; 
+#     \frac{\displaystyle \sum_{i=1}^N \; \text{Acc}\big( \text{MNIST} \;|\; \text{train on } P_i \big) \; \cdot \; d(P_i, \text{MNIST})}
+#     {\displaystyle \sum_{i=1}^N \; d(P_i, \text{MNIST}) }
+#     $$
+
+#     where:
+
+#     - $ \text{Acc}(\cdot) $ is the **test accuracy** on the MNIST test set after training on $ P_i $ with the solver’s sampling policy.
+#     - The factor $ d(P_i, \text{MNIST}) $ weights performance more heavily on datasets **further from MNIST**.
+    
+#     ---
+    
+#     ### Training Environment (fixed)
+#     - **Data:** MNIST train (28×28, grayscale) plus any tester-submitted images appended to the pool.  
+#       Pixels are in $[0,1]$ (via `ToTensor()`); tester uploads are divided by $255$ then cast to float.
+#     - **Model:** 2-layer MLP
+#       $$
+#       784 \;\xrightarrow{W_1}\; 256 \;\xrightarrow{\mathrm{ReLU}}\; 10 \;\xrightarrow{W_2}\; \text{(logits)}
+#       $$
+#     - **Loss:** cross-entropy on logits.
+#     - **Optimizer:** SGD (no momentum), learning rate fixed by us.
+#     - **Batch size:** $b$ (fixed by the host).  
+#     - **Horizon:** $K$ steps (set in the portal).  
+#     - **Seed:** fixed and applied to all host-side RNGs.
+    
+#     The **platform** runs the model/updates; the **solver** controls **which indices** are sampled each step.
+    
+#     ---
+    
+#     ### Telemetry (returned to you after each step)
+#     For the **batch you chose** at step \(t\):
+#     - `indices_t` — the indices you sampled (size \(b\)).
+#     - `per_sample_losses_t \in \mathbb{R}^b` — cross-entropy per item (no reduction).
+    
+#     **Optional (may be enabled in the portal):**
+#     - `probs_t \in \mathbb{R}^{b\times 10}` — softmax of logits.
+#     - `grad_norm_x_t \in \mathbb{R}^b` — input-gradient norms
+#       $$
+#       \left\| \nabla_x \,\ell(f(x),y) \right\|_2
+#       $$
+#       a cheap proxy for importance sampling (higher norm ⇒ potentially higher variance contribution).
+    
+#     **Not exposed:** full weights, or per-sample gradients outside your batch.
+    
+#     ---
+#     """
+#     )
+
+# with tabs[2]:
+#     st.header("Submission Portal  🧩  (write your sampling policy)")
+#     st.markdown(
+#         """
+#         **Template**
+
+#         ```python
+#         # Mandatory signature
+#         def solve(n_samples: int) -> list[int]:
+#             import random
+#             random.seed(42)          # keep it deterministic
+#             return random.sample(range(n_samples), k=n_samples)
+#         ```
+#         """
+#     )
+#     code = st_ace(
+#         placeholder="# define solve(n_samples) here…",
+#         language="python",
+#         theme="monokai",
+#         key="solver_editor",
+#         height=300,
+#     )
+#     if st.button("Submit Solver"):
+#         email = st.session_state["user_info"]["email"]
+#         out   = backend.run_solution_and_get_results(email, code)
+#         st.json(out)
+
+
+# ----------------------- Solver ------------------------------------------
 with tabs[1]:
     st.header("Adaptive Sampling Policy")
+
     st.markdown(
-    # r"""
-    # **Goal.** Implement a **stateful sampling policy** that chooses which indices to feed to SGD so the **average training loss over K steps** (AULC) is minimized.
-    
-    # **Fixed training setup (hosted):** MNIST (flattened, normalized to $[-1,1]$), 2-layer MLP $784\!\to\!128\!\xrightarrow{\mathrm{ReLU}}\!10$, Cross-Entropy loss, SGD (lr=0.1), batch=256, seed=1337.
-    
-    # **Telemetry you receive each step (for the batch you chose):**
-    # - `indices`: the indices you sampled
-    # - `per_sample_losses`: ndarray[batch] (CE per item)
-    # - *Optional (may be enabled in the portal later):* `probs` (softmax logits), `grad_norm_x` ($\|\nabla_x \ell\|_2$ per item)
-    
-    # **Submission API (required):**
-    # - Provide a factory `build_policy(pool_size: int, seed: int) -> SolverPolicy`
-    # - The returned object must implement:
-    #   - `sample(batch_size: int) -> np.ndarray[int]`
-    #   - `update(indices, per_sample_losses, probs=None, grad_norm_x=None) -> None`
-    
-    # **Score (lower is better):**
-    # \[
-    # \text{AULC}=\frac{1}{K}\sum_{t=1}^{K}\mathcal{L}_t
-    # \]
-    # Tie-breakers: final loss at step $K$, then wall-clock time.
-    #         """
-    r"""
-    
-    ### Objective
-    Design a **sampling policy** that selects, at each training step $t$, a batch of indices from the current pool so as to **minimize** the following scoring function.
-    
-    
-    Let:
-    
-    - $ N $ — total number of tester datasets.  
-    - $ P_i $ — dataset from the $ i $-th tester.  
-    - $ d(P_i, \text{MNIST}) $ — a divergence score measuring how far dataset $ D_i $ is from MNIST.  
-    
-    
-    $$
-    \text{Score} \;=\; 
-    \frac{\displaystyle \sum_{i=1}^N \; \text{Acc}\big( \text{MNIST} \;|\; \text{train on } P_i \big) \; \cdot \; d(P_i, \text{MNIST})}
-    {\displaystyle \sum_{i=1}^N \; d(P_i, \text{MNIST}) }
-    $$
+        r"""
+### Objective
+Design a **sampling policy** that selects, at each training step \(t\), a batch of indices from the current pool so as to **improve MNIST test accuracy** while training is performed on a pool consisting of **MNIST train** plus any **Tester-submitted images** appended after MNIST.
 
-    where:
+Internally the platform also tracks an optimization-quality metric (AULC: the average batch loss over steps), but your displayed score is primarily **MNIST test accuracy**.
 
-    - $ \text{Acc}(\cdot) $ is the **test accuracy** on the MNIST test set after training on $ P_i $ with the solver’s sampling policy.
-    - The factor $ d(P_i, \text{MNIST}) $ weights performance more heavily on datasets **further from MNIST**.
-    
-    ---
-    
-    ### Training Environment (fixed)
-    - **Data:** MNIST train (28×28, grayscale) plus any tester-submitted images appended to the pool.  
-      Pixels are in $[0,1]$ (via `ToTensor()`); tester uploads are divided by $255$ then cast to float.
-    - **Model:** 2-layer MLP
-      $$
-      784 \;\xrightarrow{W_1}\; 256 \;\xrightarrow{\mathrm{ReLU}}\; 10 \;\xrightarrow{W_2}\; \text{(logits)}
-      $$
-    - **Loss:** cross-entropy on logits.
-    - **Optimizer:** SGD (no momentum), learning rate fixed by us.
-    - **Batch size:** $b$ (fixed by the host).  
-    - **Horizon:** $K$ steps (set in the portal).  
-    - **Seed:** fixed and applied to all host-side RNGs.
-    
-    The **platform** runs the model/updates; the **solver** controls **which indices** are sampled each step.
-    
-    ---
-    
-    ### Telemetry (returned to you after each step)
-    For the **batch you chose** at step \(t\):
-    - `indices_t` — the indices you sampled (size \(b\)).
-    - `per_sample_losses_t \in \mathbb{R}^b` — cross-entropy per item (no reduction).
-    
-    **Optional (may be enabled in the portal):**
-    - `probs_t \in \mathbb{R}^{b\times 10}` — softmax of logits.
-    - `grad_norm_x_t \in \mathbb{R}^b` — input-gradient norms
-      $$
-      \left\| \nabla_x \,\ell(f(x),y) \right\|_2
-      $$
-      a cheap proxy for importance sampling (higher norm ⇒ potentially higher variance contribution).
-    
-    **Not exposed:** full weights, or per-sample gradients outside your batch.
-    
-    ---
-    """
+---
+
+### Training Environment (fixed)
+- **Data:** MNIST train (28×28, grayscale) plus any tester-submitted images appended to the pool.  
+  Pixels are in \([0,1]\) (via `ToTensor()`); tester uploads are divided by \(255\) then cast to float internally.
+- **Model:** 2-layer MLP  
+  \[ 784 \xrightarrow{W_1} 256 \xrightarrow{\mathrm{ReLU}} 10 \xrightarrow{W_2} \text{(logits)} \]
+- **Loss:** cross-entropy on logits.  
+- **Optimizer:** SGD (no momentum), learning rate fixed by host.  
+- **Batch size:** \(b\) (fixed by host).  
+- **Steps:** a fixed number of optimization steps (derived from epochs and pool size unless configured otherwise).  
+- **Seed:** fixed and applied to all host-side RNGs.
+
+The **platform** runs the model/updates; the **solver** controls **which indices** are sampled **every batch**.
+
+---
+
+### Telemetry you receive *every step* (for the batch you chose)
+- `indices` — the indices you sampled for this batch (size \(b\)).  
+- `per_sample_losses ∈ ℝ^b` — cross-entropy loss per item (no reduction).
+
+**Optional (host may enable):**
+- `probs ∈ ℝ^{b×10}` — softmax class probabilities for each sample.  
+- `grad_norm_x ∈ ℝ^b` — per-sample \( \|\nabla_x \,\ell(f(x),y)\|_2 \) (usually off).
+
+**Not exposed:** full weights, global gradients, or per-sample grads outside your chosen batch.
+"""
     )
 
+    st.subheader("Policy Interface (what your code must implement)")
+
+    st.markdown("**Preferred (new) API — batch-wise, stateful policy with telemetry**")
+    st.code(
+        """def build_policy(pool_size: int, seed: int):
+    class MyPolicy:
+        def __init__(self, n, s):
+            import numpy as np, random
+            self.n = int(n)
+            random.seed(int(s))
+            # Track EMA of per-sample losses
+            self.loss_ema = np.zeros(self.n, dtype=float)
+            self.beta = 0.9
+
+        def sample(self, batch_size: int):
+            import numpy as np
+            # Hard-example sampling by EMA (fallback to uniform)
+            if np.all(self.loss_ema == 0):
+                return np.random.choice(self.n, size=batch_size, replace=True)
+            order = np.argsort(-self.loss_ema)  # descending
+            return order[:batch_size]
+
+        def update(self, indices, per_sample_losses, probs=None, grad_norm_x=None):
+            self.loss_ema[indices] = self.beta * self.loss_ema[indices] + (1 - self.beta) * per_sample_losses
+
+    return MyPolicy(pool_size, seed)
+""",
+        language="python",
+    )
+
+    st.markdown("**Legacy (still supported) — epoch order only; no telemetry**")
+    st.code(
+        """def solve(n_samples: int) -> list[int]:
+    import random
+    random.seed(42)
+    return random.sample(range(n_samples), k=n_samples)
+""",
+        language="python",
+    )
+
+    st.markdown(
+        r"""
+**Notes**
+- You can keep state across steps.  
+- Indices are clipped to \([0, N-1]\). If your batch is shorter/longer than \(b\), the host pads/truncates.  
+- Duplicates in a batch are allowed (as configured by the host).
+"""
+    )
+
+# ----------------------- Solver Submission --------------------------------
 with tabs[2]:
     st.header("Submission Portal  🧩  (write your sampling policy)")
-    st.markdown(
-        """
-        **Template**
-
-        ```python
-        # Mandatory signature
-        def solve(n_samples: int) -> list[int]:
-            import random
-            random.seed(42)          # keep it deterministic
-            return random.sample(range(n_samples), k=n_samples)
-        ```
-        """
-    )
     code = st_ace(
-        placeholder="# define solve(n_samples) here…",
+        placeholder="# define build_policy(pool_size, seed) or legacy solve(n_samples) here…",
         language="python",
         theme="monokai",
         key="solver_editor",
-        height=300,
+        height=320,
     )
     if st.button("Submit Solver"):
         email = st.session_state["user_info"]["email"]
         out   = backend.run_solution_and_get_results(email, code)
         st.json(out)
+
 
 # ----------------------- Tester -----------------------------
 
