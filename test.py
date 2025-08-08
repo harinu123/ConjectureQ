@@ -490,7 +490,7 @@ database.init_db()
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 # --- App Title (after landing) ---
-st.title("Conjecture Q: CHALLENGE 1")
+st.title("CHALLENGE 1:The Crazy Conjecture")
 
 # --- Authentication with hard-coded secrets ---
 CLIENT_ID     = "877328479737-s8d7566e5otp0omrll36qk9t6vpopm6k.apps.googleusercontent.com"
@@ -815,50 +815,50 @@ with tabs[1]:
     st.header("Adaptive Sampling Policy")
 
     st.markdown(
-        r"""
-### Objective
-Design a **sampling policy** that, at each training step $t$, selects a batch of indices from the current pool to **improve MNIST test accuracy** (the platform also tracks AULC internally).
-
----
-"""
-    )
+            r"""
+    ### Objective
+    Design a **sampling policy** that, at each training step $t$, selects a batch of indices from the current pool to **improve MNIST test accuracy** (the platform also tracks AULC internally).
+    
+    ---
+    """
+        )
 
     st.markdown(
-        r"""
-### Training Environment (fixed)
-- **Data:** MNIST train (28×28, grayscale) + any tester-submitted images appended to the pool.  
-  Pixels are in $[0,1]$ via `ToTensor()`; tester uploads are divided by $255$ then cast to float.
-- **Model:** 2-layer MLP
-"""
+            r"""
+    ### Training Environment (fixed)
+    - **Data:** MNIST train (28×28, grayscale) + any tester-submitted images appended to the pool.  
+      Pixels are in $[0,1]$ via `ToTensor()`; tester uploads are divided by $255$ then cast to float.
+    - **Model:** 2-layer MLP
+    """
     )
     st.latex(r"784 \xrightarrow{W_1} 256 \xrightarrow{\mathrm{ReLU}} 10 \xrightarrow{W_2} \text{(logits)}")
 
     st.markdown(
-        r"""
-- **Loss:** cross-entropy on logits.  
-- **Optimizer:** SGD (no momentum), learning rate fixed by host.  
-- **Batch size:** $b$ (fixed by host).  
-- **Steps:** fixed (derived from epochs × pool size unless overridden).  
-- **Seed:** fixed; applied to all host-side RNGs.
-
-The **platform** runs the updates; the **solver** controls **which indices** are sampled **every batch**.
-"""
+            r"""
+    - **Loss:** cross-entropy on logits.  
+    - **Optimizer:** SGD (no momentum), learning rate fixed by host.  
+    - **Batch size:** $b$ (fixed by host).  
+    - **Steps:** fixed (derived from epochs × pool size unless overridden).  
+    - **Seed:** fixed; applied to all host-side RNGs.
+    
+    The **platform** runs the updates; the **solver** controls **which indices** are sampled **every batch**.
+    """
     )
 
     st.markdown("---")
     st.markdown("### Telemetry you receive each step (for the batch you chose)")
 
     st.markdown(
-        r"""
-- `indices` — the indices you sampled (size $b$).  
-- `per_sample_losses \in \mathbb{R}^b` — cross-entropy per item (no reduction).
+            r"""
+    - `indices` — the indices you sampled (size $b$).  
+    - `per_sample_losses \in \mathbb{R}^b` — cross-entropy per item (no reduction).
+    
+    **Optional (may be enabled by host):**
+    - `probs \in \mathbb{R}^{b\times 10}` — softmax class probabilities.  
+    - `grad_norm_x \in \mathbb{R}^b` — per-sample $ \lVert \nabla_x \,\ell(f(x),y) \rVert_2 $.
 
-**Optional (may be enabled by host):**
-- `probs \in \mathbb{R}^{b\times 10}` — softmax class probabilities.  
-- `grad_norm_x \in \mathbb{R}^b` — per-sample $ \lVert \nabla_x \,\ell(f(x),y) \rVert_2 $.
-
-**Not exposed:** full weights, global gradients, or per-sample grads outside your batch.
-"""
+    **Not exposed:** full weights, global gradients, or per-sample grads outside your batch.
+    """
     )
 
     st.subheader("Policy Interface (what your code must implement)")
