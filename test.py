@@ -1061,13 +1061,13 @@ with tabs[6]:
 
     st.subheader("Community Discussion")
 
-    # --- Real comments (as before) ---
+    # --- Real comments ---
     comments = list(reversed(database.get_comments()))
 
-    # --- Fake comments spaced over the last ~1.5 weeks ---
+    # --- Fake comments ---
     from datetime import datetime, timedelta
     import random
-    random.seed(2025)  # deterministic so it doesn't jump around each refresh
+    random.seed(2025)
 
     now = datetime.now()
     fake_bodies = [
@@ -1084,17 +1084,18 @@ with tabs[6]:
         ("Aarav_Sharma","Yes! But it’s tricky without overfitting to the tester pool."),
     ]
 
-    # spread uniformly over the past 11 days (≈1.5 weeks), randomize hour/minute
+    # spread uniformly over days 4..14 (skip the last 3 days)
     fake_comments = []
-    span_days = 11
-    for i, (name, text) in enumerate(fake_bodies):
-        days_ago = random.uniform(0, span_days)        # 0..11 days
+    span_days = 11  # total range for scattering
+    min_days_ago = 3
+    for name, text in fake_bodies:
+        days_ago = random.uniform(min_days_ago, min_days_ago + span_days)
         hours    = random.randint(0, 23)
         minutes  = random.randint(0, 59)
         ts = (now - timedelta(days=days_ago)).replace(hour=hours, minute=minutes, second=0, microsecond=0)
         fake_comments.append({"name": name, "text": text, "timestamp": ts.strftime("%Y-%m-%d %H:%M")})
 
-    # --- Merge and sort newest->oldest by timestamp if present ---
+    # Merge and sort newest->oldest
     def _parse_ts(c):
         try:
             return datetime.strptime(c.get("timestamp", ""), "%Y-%m-%d %H:%M")
@@ -1104,11 +1105,9 @@ with tabs[6]:
     comments.extend(fake_comments)
     comments = sorted(comments, key=_parse_ts, reverse=True)
 
-    # --- Render ---
     for c in comments:
         st.markdown(f"**{c['name']}** ({c.get('timestamp','')}):")
         st.markdown(f"> {c['text']}")
-
 # --- Leaderboards tab (frontend-only, fixed names + fake scores) ---
 with tabs[7]:
     st.header("Leaderboards")
