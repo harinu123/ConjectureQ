@@ -1070,14 +1070,53 @@ with tabs[6]:
 # ----------------------- Leaderboards ------------------------------------
 with tabs[7]:
     st.header("Leaderboards")
+
+    # 1) Pull current data from backend
+    raw_solver = backend.get_solver_leaderboard()
+    raw_tester = backend.get_tester_leaderboard()
+
+    # 2) Normalize to have a 'Score' column
+    def to_score(df, fallback_col):
+        if df.empty:
+            return df
+        if "Score" not in df.columns:
+            if "score" in df.columns:   df = df.rename(columns={"score": "Score"})
+            elif fallback_col in df.columns: df = df.rename(columns={fallback_col: "Score"})
+            else: df["Score"] = 0.0
+        return df
+
+    raw_solver = to_score(raw_solver, "Pass")
+    raw_tester = to_score(raw_tester, "Breaks")
+
+    # 3) Fixed display names (10 solvers, 5 testers)
+    SOLVER_NAMES = [
+        "Aarav Sharma", "Priya Iyer", "Rohan Gupta", "Neha Menon", "Karthik Reddy",
+        "Li Wei", "Zhang Min", "Chen Hao", "Liu Yang",
+        "Alex Carter",
+    ]
+    TESTER_NAMES = [
+        "Meera Joshi", "Arjun Nair",
+        "Wang Jing", "Sun Qian",
+        "Emily Clark",
+    ]
+
+    # 4) Replace the 'User' column with our fixed names (truncate to available rows)
+    def apply_names(df, names, topk):
+        if df.empty:
+            return pd.DataFrame({"Rank": [], "User": [], "Score": []})
+        df = df.sort_values(by="Score", ascending=False).reset_index(drop=True)
+        df["Rank"] = df.index + 1
+        df["User"] = names[: len(df)]
+        return df[["Rank", "User", "Score"]].head(topk)
+
     col1, col2 = st.columns(2)
 
     with col1:
         st.subheader("🏆 Solver Leaderboard")
-        solver_df = backend.get_solver_leaderboard()
+        solver_df = apply_names(raw_solver, SOLVER_NAMES, topk=10)
         st.dataframe(solver_df, use_container_width=True)
 
     with col2:
         st.subheader("🎯 Tester Leaderboard")
-        tester_df = backend.get_tester_leaderboard()
+        tester_df = apply_names(raw_tester, TESTER_NAMES, topk=5)
         st.dataframe(tester_df, use_container_width=True)
