@@ -110,9 +110,43 @@ with tabs[0]:
     st.header("Overview")
     st.markdown(
         """
-        **Conjecture (True Form):**
+    This challenge is inspired by what has been called the **“Crazy Conjecture”**, proposed in a talk by Nathan Srebro at **ICLR 2025**
+    
+    At its core, the conjecture asks:
+    
+    > For any function \( f^*(x) \) representable by a neural network and any input distribution \( D_x \), does there exist a different distribution \( D_x' \) from which only polynomially many samples are enough to train a model—using gradient descent—to perform well on \( D_x \) itself?
+    
+    In simpler terms:
+    
+    If we can’t change the model architecture or optimizer, can we instead choose **where the training data comes from** to make learning vastly more efficient—even if the new data distribution looks nothing like the test distribution?
+    
+    ---
+    
+    ## Why This Matters
+    
+    This is a fundamental open question in machine learning theory:
+    
+    - It’s **not** about tuning hyperparameters or architectures.  
+    - It’s about **constructing training sets** that make learning provably easier.  
+    - If true, it could reshape how we think about **data selection**, **curriculum learning**, and **domain adaptation**.
+    
+    ---
+    
+    ## The Challenge Setup
+    
+    - **Testers** design the hardest possible alternative training distributions $P_i$ (subject to certain constraints).  
+    - **Solvers** design **sampling policies** $ \pi(i) $ that adaptively pick examples to minimize a special scoring function.
+    
+    ---
+    
+    ## Your Goal
+    
+    - **As a Solver** — You are effectively trying to **beat the Crazy Conjecture game**. Given any weird or adversarial distribution from a Tester, your policy should still extract the most useful training sequence to perform well on MNIST.
+    
+    - **As a Tester** — You are trying to **break Solvers** by designing distributions that are far from MNIST yet still within the allowed constraints, making it hard for Solvers to succeed.
+    
+    ---
 
-        **Coding Challenge:**
         """
     )
 
