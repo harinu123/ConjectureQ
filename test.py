@@ -179,13 +179,23 @@ with tabs[1]:
     r"""
     
     ### Objective
-    Design a **sampling policy** that selects, at each training step $t$, a batch of indices from the current pool so as to **minimize** the average normalized loss across all submitted tester datasets.
+    Design a **sampling policy** that selects, at each training step $t$, a batch of indices from the current pool so as to **minimize** the following scoring function.
     
-    **Fill in the scoring function:**
+    
+    Let:
+    
+    - $ N $ — total number of tester datasets.  
+    - $ P_i $ — dataset from the $ i $-th tester.  
+    - $ d(D_i, \text{MNIST}) $ — a divergence score measuring how far dataset $ D_i $ is from MNIST.  
+    
+    ## Scoring Function
+    
     $$
-    \mathrm{AULC} \;=\; \frac{1}{K}\,\sum_{t=1}^{K} L_t
+    \text{Score} \;=\; 
+    \frac{\displaystyle \sum_{i=1}^N \; \text{Acc}\big( \text{MNIST} \;|\; \text{train on } P_i \big) \; \cdot \; d(D_i, \text{MNIST})}
+    {\displaystyle \sum_{i=1}^N \; d(D_i, \text{MNIST}) }
     $$
-    Tie-breakers: final loss at step \(K\), then wall-clock time.
+    
     
     ---
     
