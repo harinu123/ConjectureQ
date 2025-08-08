@@ -1054,13 +1054,37 @@ with tabs[5]:
 with tabs[6]:
     st.header("Discussion")
     user_name = st.session_state["user_info"].get("name")
-    txt       = st.text_area("Add your comment or question:")
+    txt = st.text_area("Add your comment or question:")
     if st.button("Post"):
         database.add_comment(user_name, txt)
         st.success("Your comment has been posted.")
+
     st.subheader("Community Discussion")
-    for c in reversed(database.get_comments()):
-        st.markdown(f"**{c['name']}** ({c.get('timestamp', '')}):")
+
+    # Get real comments
+    comments = list(reversed(database.get_comments()))
+
+    # Add fake comments (no timestamp)
+    fake_comments = [
+        {"name": "Meera3215", "text": "Has anyone tried weighting the sampler based on recent batch losses? I’m seeing mixed results."},
+        {"name": "Emily_01", "text": "@Meera3215 I did something similar — it helped early on but plateaued quickly."},
+        {"name": "SunQian", "text": "Pro tip: avoid oversampling noisy test submissions, they tank the score."},
+        {"name": "Wang2", "text": "Interesting, my divergence metric seems to reward harder datasets more than expected."},
+        {"name": "Arjun Nair", "text": "Lol my policy keeps picking the same 50 samples. Need to fix that."},
+        {"name": "RohanGupta", "text": "Tester gang — I’ve got a new set of images coming that should trip up most solvers."},
+        {"name": "Li Wei", "text": "That’s evil 😂 but I love it. Curious to see how they hold up."},
+        {"name": "Karthik_RE", "text": "Is the leaderboard updating instantly or on a delay? Mine took a while."},
+        {"name": "Chen Hao", "text": "I think it’s on a small delay — probably batching updates."},
+        {"name": "Alex99", "text": "Anybody else trying to make their policy adapt mid-training?"},
+        {"name": "Aarav_Sharma", "text": "Yes! But it’s tricky without overfitting to the tester pool."},
+    ]
+
+    # Merge fake + real
+    comments.extend(fake_comments)
+
+    # Render
+    for c in comments:
+        st.markdown(f"**{c['name']}**:")
         st.markdown(f"> {c['text']}")
 
 # --- Leaderboards tab (frontend-only, fixed names + fake scores) ---
