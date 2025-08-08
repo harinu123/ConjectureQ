@@ -433,6 +433,7 @@
 
 
 # test.py
+# test_combined.py
 
 import io
 import numpy as np
@@ -502,7 +503,7 @@ tab_list = [
     "Solver Submission",
     "Tester",
     "Tester Submission",
-    "My Submissions",  
+    "My Submissions",
     "Discussion",
     "Leaderboards",
 ]
@@ -538,22 +539,22 @@ This is a fundamental open question in machine learning theory:
 ## The Challenge Setup
 
 - **Testers** design the hardest possible alternative training distributions \(P_i\) (subject to certain constraints).  
-- **Solvers** design **sampling policies** \( \pi(i) \) that adaptively pick examples to minimize a special scoring function.
+- **Solvers** design **sampling policies** \( \pi(i) \) that adaptively pick examples to minimize a special scoring function (operationalized here as achieving high MNIST test accuracy while the training pool can include tester-submitted data that’s “far” from MNIST).
 
 ---
 
 ## Your Goal
 
-- **As a Solver** — You are effectively trying to **beat the Crazy Conjecture game**. Given any weird or adversarial distribution from a Tester, your policy should still extract the most useful training sequence to perform well on MNIST.
-- **As a Tester** — You are trying to **break Solvers** by designing distributions that are far from MNIST yet still within the allowed constraints, making it hard for Solvers to succeed.
+- **As a Solver** — You are effectively trying to **beat the Crazy Conjecture game**. Given any weird or adversarial examples from Testers appended into the pool, your policy should still pick batches intelligently to train a robust model and perform well on MNIST test.  
 
----
+- **As a Tester** — You are trying to **break Solvers** by designing inputs that are far from MNIST (by symmetric KL on pixel histograms) yet still satisfy the constraints, making it difficult for Solvers to succeed.
 """
     )
 
-# ----------------------- Solver --------------------------------------
+# ----------------------- Solver ------------------------------------------
 with tabs[1]:
     st.header("Adaptive Sampling Policy")
+
     st.markdown(
         r"""
 ### Objective
@@ -567,9 +568,7 @@ Internally the platform also tracks an optimization-quality metric (AULC: the av
 - **Data:** MNIST train (28×28, grayscale) plus any tester-submitted images appended to the pool.  
   Pixels are in \([0,1]\) (via `ToTensor()`); tester uploads are divided by \(255\) then cast to float internally.
 - **Model:** 2-layer MLP  
-  \[
-  784 \xrightarrow{W_1} 256 \xrightarrow{\mathrm{ReLU}} 10 \xrightarrow{W_2} \text{(logits)}
-  \]
+  \[ 784 \xrightarrow{W_1} 256 \xrightarrow{\mathrm{ReLU}} 10 \xrightarrow{W_2} \text{(logits)} \]
 - **Loss:** cross-entropy on logits.  
 - **Optimizer:** SGD (no momentum), learning rate fixed by host.  
 - **Batch size:** \(b\) (fixed by host).  
@@ -584,19 +583,19 @@ The **platform** runs the model/updates; the **solver** controls **which indices
 - `indices` — the indices you sampled for this batch (size \(b\)).  
 - `per_sample_losses ∈ ℝ^b` — cross-entropy loss per item (no reduction).
 
-**Optional (enabled by host settings; softmax is currently enabled):**
+**Optional (host may enable):**
 - `probs ∈ ℝ^{b×10}` — softmax class probabilities for each sample.  
-- `grad_norm_x ∈ ℝ^b` — per-sample \( \|\nabla_x \,\ell(f(x),y)\|_2 \) (expensive; usually off).
+- `grad_norm_x ∈ ℝ^b` — per-sample \( \|\nabla_x \,\ell(f(x),y)\|_2 \) (usually off).
 
 **Not exposed:** full weights, global gradients, or per-sample grads outside your chosen batch.
+"""
+    )
 
----
+    st.subheader("Policy Interface (what your code must implement)")
 
-### Policy Interface (what your code must implement)
-
-**Preferred (new) API — batch-wise, stateful policy with telemetry**
-```python
-def build_policy(pool_size: int, seed: int):
+    st.markdown("**Preferred (new) API — batch-wise, stateful policy with telemetry**")
+    st.code(
+        """def build_policy(pool_size: int, seed: int):
     class MyPolicy:
         def __init__(self, n, s):
             import numpy as np, random
@@ -618,16 +617,22 @@ def build_policy(pool_size: int, seed: int):
             self.loss_ema[indices] = self.beta * self.loss_ema[indices] + (1 - self.beta) * per_sample_losses
 
     return MyPolicy(pool_size, seed)
-```
+""",
+        language="python",
+    )
 
-**Legacy (still supported) — epoch order only; no telemetry**
-```python
-def solve(n_samples: int) -> list[int]:
+    st.markdown("**Legacy (still supported) — epoch order only; no telemetry**")
+    st.code(
+        """def solve(n_samples: int) -> list[int]:
     import random
     random.seed(42)
     return random.sample(range(n_samples), k=n_samples)
-```
+""",
+        language="python",
+    )
 
+    st.markdown(
+        r"""
 **Notes**
 - You can keep state across steps.  
 - Indices are clipped to \([0, N-1]\). If your batch is shorter/longer than \(b\), the host pads/truncates.  
@@ -635,32 +640,22 @@ def solve(n_samples: int) -> list[int]:
 """
     )
 
-# ----------------------- Solver Submission -------------------------------
+# ----------------------- Solver Submission --------------------------------
 with tabs[2]:
     st.header("Submission Portal  🧩  (write your sampling policy)")
-    st.markdown(
-        r"""
-**Paste code that defines either**:
-
-- `build_policy(pool_size: int, seed: int) -> SolverPolicy` (preferred), or  
-- `solve(n_samples: int) -> list[int]` (legacy).
-
-**Minimal working templates are shown in the Solver tab.**
-"""
-    )
     code = st_ace(
         placeholder="# define build_policy(pool_size, seed) or legacy solve(n_samples) here…",
         language="python",
         theme="monokai",
         key="solver_editor",
-        height=300,
+        height=320,
     )
     if st.button("Submit Solver"):
         email = st.session_state["user_info"]["email"]
         out   = backend.run_solution_and_get_results(email, code)
         st.json(out)
 
-# ----------------------- Tester -----------------------------
+# ----------------------- Tester ------------------------------------------
 with tabs[3]:
     st.header("Tester")
     st.markdown(
@@ -687,45 +682,18 @@ Let \(P_{\text{real}}\) be the MNIST pixel distribution and \(P_{\text{synth}}\)
 
 - **Histogram spec:** 50 bins over **[-1, 1]** (inclusive).  
 - **Smoothing:** add \(\varepsilon=10^{-8}\) to every bin to avoid zeros.
-"""
-    )
 
-    st.latex(r"""
+\(
 D_{\text{sym}}(P_{\text{real}}, P_{\text{synth}})
 = D_{KL}(P_{\text{real}} \,\|\, P_{\text{synth}})
 + D_{KL}(P_{\text{synth}} \,\|\, P_{\text{real}})
-""")
-
-    st.markdown(
-        r"""
-The leaderboard shows each tester’s **best** \(D_{\text{sym}}\) to date.
-
----
-
-### Fixed reference (for consistency)
-- **Dataset:** MNIST train (60,000 images).  
-- **Preprocessing:** images flattened to 784 and normalized with mean \(0.5\), std \(0.5\) (so pixels lie roughly in **[-1, 1]**).  
-- The **reference histogram** \(P_{\text{real}}\) is precomputed once from the above.
-
----
-
-### Rules & constraints
-- **Originality:** Do not upload MNIST samples or trivially perturbed MNIST — submissions must be synthetic or from an independent generator.  
-- **Validity checks:** CSV must be 2D (n×784). Non-numeric entries are rejected. Values outside [-1, 1] are **clipped**.  
-- **Size limits:** Recommended \(n \le 1024\) per upload (larger files may be rejected for runtime/memory reasons).  
-- **Privacy:** The CSV should contain only pixel values (no personal data, no labels).
-
----
-
-### Baseline intuition
-- Uniform noise in [-1, 1] is a simple baseline.  
-- To increase \(D_{\text{sym}}\), place probability mass in pixel-value regions rare in MNIST — while remembering symmetric KL penalizes empty bins on either side (smoothing mitigates this).
+\)
 """
     )
 
-# --------- Tester Submission portal ------------
+# ----------------------- Tester Submission --------------------------------
 with tabs[4]:
-    st.header("Submission Portal  🐉 ")
+    st.header("Tester Submission  🐉 ")
     st.markdown(
         r"""
 Upload a **CSV** with **n rows × 784 columns** (one flattened \(28\times28\) image per row).
@@ -755,9 +723,11 @@ Upload a **CSV** with **n rows × 784 columns** (one flattened \(28\times28\) im
         if out.get("status") == "Completed":
             st.success(f"KL_sym = {out['kl_sym']:.6f}  |  n = {out['n_samples']}")
             st.json({k: out[k] for k in ["kl_sym", "n_samples", "bins", "range"]})
-            if show_plots and "plots" in out:
-                st.pyplot(out["plots"]["mnist"])
-                st.pyplot(out["plots"]["synth"])
+            if show_plots and isinstance(out.get("plots"), dict):
+                if "mnist" in out["plots"]:
+                    st.pyplot(out["plots"]["mnist"])
+                if "synth" in out["plots"]:
+                    st.pyplot(out["plots"]["synth"])
         else:
             st.error(out.get("error", "Upload failed"))
 
@@ -768,7 +738,7 @@ Upload a **CSV** with **n rows × 784 columns** (one flattened \(28\times28\) im
         pd.DataFrame(demo).to_csv(buf, index=False, header=False)
         st.download_button("sample.csv", data=buf.getvalue(), file_name="sample.csv", mime="text/csv")
 
-# ----------------------- My  Submissions -----------------------------
+# ----------------------- My  Submissions ---------------------------------
 with tabs[5]:
     st.header("My Submissions")
     email = st.session_state["user_info"]["email"]
@@ -804,6 +774,5 @@ with tabs[7]:
     with col2:
         st.subheader("🎯 Tester Leaderboard")
         st.dataframe(backend.get_tester_leaderboard(), use_container_width=True)
-
-        # Kept from original code to avoid losing anything
+        # Preserve duplicate table if desired
         st.dataframe(backend.get_tester_leaderboard(), use_container_width=True)
