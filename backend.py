@@ -508,22 +508,57 @@ def evaluate_tester_csv(
 # --------------------------------------------------------------------------- #
 # 3️⃣  Leaderboard helpers (unchanged except for columns)                    #
 # --------------------------------------------------------------------------- #
+# def get_solver_leaderboard():
+#     df = pd.DataFrame(database.get_solvers())
+#     if df.empty:
+#         return pd.DataFrame({"Rank": [], "User": [], "Pass": []})
+#     df = df.sort_values(by="tests_passed", ascending=False).reset_index(drop=True)
+#     df["Rank"] = df.index + 1
+#     return df[["Rank", "name", "tests_passed"]].rename(
+#         columns={"name": "User", "tests_passed": "Pass"}
+#     )
+
+# def get_tester_leaderboard():
+#     df = pd.DataFrame(database.get_testers())
+#     if df.empty:
+#         return pd.DataFrame({"Rank": [], "User": [], "Breaks": []})
+#     df = df.sort_values(by="breaks_found", ascending=False).reset_index(drop=True)
+#     df["Rank"] = df.index + 1
+#     return df[["Rank", "name", "breaks_found"]].rename(
+#         columns={"name": "User", "breaks_found": "Breaks"}
+#     )
+
+def _display_name(raw: str) -> str:
+    # hide emails if any slipped in
+    return raw.split("@")[0] if "@" in raw else raw
+
 def get_solver_leaderboard():
     df = pd.DataFrame(database.get_solvers())
     if df.empty:
-        return pd.DataFrame({"Rank": [], "User": [], "Pass": []})
-    df = df.sort_values(by="tests_passed", ascending=False).reset_index(drop=True)
+        return pd.DataFrame({"Rank": [], "User": [], "Score": []})
+
+    # Back-compat: prefer 'score', else 'tests_passed'
+    if "score" not in df.columns:
+        df["score"] = df.get("tests_passed", pd.Series([0]*len(df)))
+
+    df["User"] = df["name"].map(_display_name)
+    df = df.sort_values(by="score", ascending=False).reset_index(drop=True)
     df["Rank"] = df.index + 1
-    return df[["Rank", "name", "tests_passed"]].rename(
-        columns={"name": "User", "tests_passed": "Pass"}
-    )
+    df = df[["Rank","User","score"]].rename(columns={"score":"Score"})
+    return df.head(10)  # show top 10
+
 
 def get_tester_leaderboard():
     df = pd.DataFrame(database.get_testers())
     if df.empty:
-        return pd.DataFrame({"Rank": [], "User": [], "Breaks": []})
-    df = df.sort_values(by="breaks_found", ascending=False).reset_index(drop=True)
+        return pd.DataFrame({"Rank": [], "User": [], "Score": []})
+
+    # Back-compat: prefer 'score', else 'breaks_found'
+    if "score" not in df.columns:
+        df["score"] = df.get("breaks_found", pd.Series([0]*len(df)))
+
+    df["User"] = df["name"].map(_display_name)
+    df = df.sort_values(by="score", ascending=False).reset_index(drop=True)
     df["Rank"] = df.index + 1
-    return df[["Rank", "name", "breaks_found"]].rename(
-        columns={"name": "User", "breaks_found": "Breaks"}
-    )
+    df = df[["Rank","User","score"]].rename(columns={"score":"Score"})
+    return df.head(5)   # show top 5
