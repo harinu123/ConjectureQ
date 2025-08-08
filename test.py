@@ -186,16 +186,19 @@ with tabs[1]:
     
     - $ N $ — total number of tester datasets.  
     - $ P_i $ — dataset from the $ i $-th tester.  
-    - $ d(D_i, \text{MNIST}) $ — a divergence score measuring how far dataset $ D_i $ is from MNIST.  
+    - $ d(P_i, \text{MNIST}) $ — a divergence score measuring how far dataset $ D_i $ is from MNIST.  
     
-    ## Scoring Function
     
     $$
     \text{Score} \;=\; 
-    \frac{\displaystyle \sum_{i=1}^N \; \text{Acc}\big( \text{MNIST} \;|\; \text{train on } P_i \big) \; \cdot \; d(D_i, \text{MNIST})}
-    {\displaystyle \sum_{i=1}^N \; d(D_i, \text{MNIST}) }
+    \frac{\displaystyle \sum_{i=1}^N \; \text{Acc}\big( \text{MNIST} \;|\; \text{train on } P_i \big) \; \cdot \; d(P_i, \text{MNIST})}
+    {\displaystyle \sum_{i=1}^N \; d(P_i, \text{MNIST}) }
     $$
-    
+
+    where:
+
+    - $ \text{Acc}(\cdot) $ is the **test accuracy** on the MNIST test set after training on $ P_i $ with the solver’s sampling policy.
+    - The factor $ d(P_i, \text{MNIST}) $ weights performance more heavily on datasets **further from MNIST**.
     
     ---
     
