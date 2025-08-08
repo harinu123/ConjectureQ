@@ -547,7 +547,7 @@ with tabs[0]:
     st.header("Overview")
     st.markdown(
         """
-    This challenge is inspired by what has been called the **“Crazy Conjecture”**, proposed in a talk by Nathan Srebro at **ICLR 2025**
+    This challenge is inspired by what has been called the **“Crazy Conjecture”**, proposed in a talk by Nathan Srebro at **ICML 2025**
     
     At its core, the conjecture asks:
     
