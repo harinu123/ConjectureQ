@@ -1071,11 +1071,13 @@ with tabs[6]:
 with tabs[7]:
     st.header("Leaderboards")
     col1, col2 = st.columns(2)
+
     with col1:
         st.subheader("🏆 Solver Leaderboard")
-        st.dataframe(backend.get_solver_leaderboard(), use_container_width=True)
+        solver_df = backend.get_solver_leaderboard()
+        st.dataframe(solver_df, use_container_width=True)
+
     with col2:
         st.subheader("🎯 Tester Leaderboard")
-        st.dataframe(backend.get_tester_leaderboard(), use_container_width=True)
-
-        st.dataframe(backend.get_tester_leaderboard(), use_container_width=True)
+        tester_df = backend.get_tester_leaderboard()
+        st.dataframe(tester_df, use_container_width=True)
