@@ -812,111 +812,64 @@ with tabs[0]:
 
 
 with tabs[1]:
-    st.header("Adaptive Sampling Policy")
-
-    st.markdown(
-            r"""
+        st.header("Adaptive Sampling Policy")
+    
+        st.markdown(
+                r"""
     ### Objective
-    Design a **sampling policy** that, at each training step $t$, selects a batch of indices from the current pool to **improve MNIST test accuracy** (the platform also tracks AULC internally).
+    Design a **sampling policy** that selects, at each training step $ t $, a batch of indices from the current pool so as to **maximize** the following scoring function.
+    
+    Let:
+    
+    - $ N $ — total number of tester datasets.  
+    - $ P_i $ — dataset from the \( i \)-th tester.  
+    - $ d(P_i, \text{MNIST}) $ — a divergence score measuring how far dataset $P_i $ is from MNIST.  
+    
+    The score is:
+    
+    $$
+    \text{Score} \;=\; 
+    \frac{\displaystyle \sum_{i=1}^N \; \text{Acc}\big( \text{MNIST} \;|\; \text{train on } P_i \big) \; \cdot \; d(P_i, \text{MNIST})}
+    {\displaystyle \sum_{i=1}^N \; d(P_i, \text{MNIST}) }
+    $$
+    
+    where:
+    
+    - $ \text{Acc}(\cdot) $ is the **test accuracy** on the MNIST test set after training on $ P_i $ with your sampling policy.  
+    - The factor $ d(P_i, \text{MNIST}) $ **weights performance more heavily on datasets further from MNIST**.
     
     ---
-    """
-        )
-
-    st.markdown(
-            r"""
+    
     ### Training Environment (fixed)
-    - **Data:** MNIST train (28×28, grayscale) + any tester-submitted images appended to the pool.  
-      Pixels are in $[0,1]$ via `ToTensor()`; tester uploads are divided by $255$ then cast to float.
-    - **Model:** 2-layer MLP
-    """
-    )
-    st.latex(r"784 \xrightarrow{W_1} 256 \xrightarrow{\mathrm{ReLU}} 10 \xrightarrow{W_2} \text{(logits)}")
-
-    st.markdown(
-            r"""
-    - **Loss:** cross-entropy on logits.  
-    - **Optimizer:** SGD (no momentum), learning rate fixed by host.  
-    - **Batch size:** $b$ (fixed by host).  
-    - **Steps:** fixed (derived from epochs × pool size unless overridden).  
-    - **Seed:** fixed; applied to all host-side RNGs.
+    - **Data:** MNIST train (28×28, grayscale) plus any tester-submitted images appended to the pool.  
+      Pixels are in $[0,1]$ (via `ToTensor()` for MNIST; tester uploads are divided by $255$ then cast to float).
+    - **Model:** 2-layer MLP  
+      $$
+      784 \;\xrightarrow{W_1}\; 256 \;\xrightarrow{\mathrm{ReLU}}\; 10 \;\xrightarrow{W_2}\; \text{(logits)}
+      $$
+    - **Loss:** Cross-Entropy on logits  
+    - **Optimizer:** SGD (no momentum), learning rate fixed by host  
+    - **Batch size:** \( b \) (fixed by host)  
+    - **Steps:** \( K \) updates (set in the portal)  
+    - **Seed:** fixed and applied to all host-side RNGs  
     
-    The **platform** runs the updates; the **solver** controls **which indices** are sampled **every batch**.
-    """
-    )
-
-    st.markdown("---")
-    st.markdown("### Telemetry you receive each step (for the batch you chose)")
-
-    st.markdown(
-            r"""
-    - `indices` — the indices you sampled (size $b$).  
-    - `per_sample_losses \in \mathbb{R}^b` — cross-entropy per item (no reduction).
+    The **platform** runs the model forward/backward/update; 
+    **your solver** chooses **which indices** are sampled each step!
     
-    **Optional (may be enabled by host):**
-    - `probs \in \mathbb{R}^{b\times 10}` — softmax class probabilities.  
-    - `grad_norm_x \in \mathbb{R}^b` — per-sample $ \lVert \nabla_x \,\ell(f(x),y) \rVert_2 $.
-
-    **Not exposed:** full weights, global gradients, or per-sample grads outside your batch.
+    ---
+    
+    ### Telemetry (returned after each step)
+    For the **batch you chose** at step $ t $:
+    
+    - `indices_t` — the indices you sampled (size $ b $)  
+    - `per_sample_losses_t ∈ ℝ^b` — cross-entropy loss per item (no reduction)  
+    
     """
-    )
-
-    st.subheader("Policy Interface (what your code must implement)")
-
-    st.markdown("**Preferred (new) API — batch-wise, stateful policy with telemetry**")
-    st.code(
-        """def build_policy(pool_size: int, seed: int):
-    class MyPolicy:
-        def __init__(self, n, s):
-            import numpy as np, random
-            self.n = int(n)
-            random.seed(int(s))
-            # EMA of per-sample losses for simple hard-example sampling
-            self.loss_ema = np.zeros(self.n, dtype=float)
-            self.beta = 0.9
-
-        def sample(self, batch_size: int):
-            import numpy as np
-            if np.all(self.loss_ema == 0):
-                # cold start: uniform with replacement
-                return np.random.choice(self.n, size=batch_size, replace=True).astype(int)
-            # pick largest-EMA items (top-k)
-            order = np.argsort(-self.loss_ema)
-            return order[:batch_size].astype(int)
-
-        def update(self, indices, per_sample_losses, probs=None, grad_norm_x=None):
-            # in-place EMA update for the items we just saw
-            self.loss_ema[indices] = self.beta * self.loss_ema[indices] + (1 - self.beta) * per_sample_losses
-
-    return MyPolicy(pool_size, seed)
-""",
-        language="python",
-    )
-
-    st.markdown("**Legacy (still supported) — epoch order only; no telemetry**")
-    st.code(
-        """def solve(n_samples: int) -> list[int]:
-    import random
-    random.seed(42)
-    return random.sample(range(n_samples), k=n_samples)
-""",
-        language="python",
-    )
-
-    st.markdown(
-        r"""
-**Notes**
-- State is persisted across steps on the solver side.  
-- Indices are clipped to $[0, N-1]$. If your batch is shorter/longer than $b$, the host pads/truncates.  
-- Duplicates may be allowed (host setting).  
-- Feel free to replace the EMA heuristic with your own scoring/priority logic.
-"""
     )
 
 # ----------------------- Solver Submission --------------------------------
 with tabs[2]:
     st.header("Submission Portal  🧩  (write your sampling policy)")
-    st.markdown("**Preferred (new) API — batch-wise, stateful policy with telemetry**")
     st.code(
         """def build_policy(pool_size: int, seed: int):
     class MyPolicy:
