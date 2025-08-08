@@ -145,9 +145,9 @@ with tabs[1]:
     r"""
     
     ### Objective
-    Design a **sampling policy** that selects, at each training step $t$, a batch of indices from the current pool so as to **minimize the average training loss** over $K$ SGD updates.
+    Design a **sampling policy** that selects, at each training step $t$, a batch of indices from the current pool so as to **minimize** the average normalized loss across all submitted tester datasets.
     
-    **Score (lower is better):**
+    **Fill in the scoring function:**
     $$
     \mathrm{AULC} \;=\; \frac{1}{K}\,\sum_{t=1}^{K} L_t
     $$
