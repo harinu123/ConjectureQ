@@ -114,7 +114,7 @@ with tabs[0]:
     
     At its core, the conjecture asks:
     
-    > For any function \( f^*(x) \) representable by a neural network and any input distribution \( D_x \), does there exist a different distribution \( D_x' \) from which only polynomially many samples are enough to train a model—using gradient descent—to perform well on \( D_x \) itself?
+    > For any function $ f^*(x) $ representable by a neural network and any input distribution $ D_x $, does there exist a different distribution $ D_x' $ from which only polynomially many samples are enough to train a model—using gradient descent—to perform well on $ D_x $ itself?
     
     In simpler terms:
     
